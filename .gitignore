@@ -1,0 +1,24 @@
+# macOS
+.DS_Store
+
+# Node.js (for both backend and frontend)
+node_modules/
+*.log
+npm-debug.log
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# Uploads folder (likely in backend)
+uploads/
+
+# Next.js build output (in frontend)
+frontend/.next/
+frontend/out/
+
+# Backend build output
+backend/dist/
+backend/build/
