@@ -21,7 +21,8 @@
     "rc-picker": "^4.9.2",
     "react": "^19.0.0",
     "react-csv": "^2.2.2",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "sass": "^1.86.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

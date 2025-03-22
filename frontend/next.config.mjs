@@ -13,14 +13,12 @@ const tmConfig = withTM([
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Transpile Ant Design and related packages to fix ESM issues
   transpilePackages: [
     'rc-util',
     'rc-picker',
     'rc-tree',
     'rc-table',
   ],
-  // Disable ESLint during builds to avoid serialization errors
   eslint: {
     ignoreDuringBuilds: true,
   },

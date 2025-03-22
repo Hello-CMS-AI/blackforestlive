@@ -1,8 +1,7 @@
 import AppLayout from "../components/Layout";
-import "../styles/globals.css";
+import "../styles/globals.scss"; // Updated to .scss
 
 function MyApp({ Component, pageProps }) {
-  // Check if the component opts out of the default layout
   const useLayout = Component.useLayout !== false;
 
   return useLayout ? (
