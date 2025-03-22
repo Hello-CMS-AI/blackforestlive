@@ -1,5 +1,7 @@
-/** @type {import('next').NextConfig} */
-const withTM = require('next-transpile-modules')([
+import withTM from 'next-transpile-modules';
+
+// Configure packages to transpile
+const tmConfig = withTM([
   '@ant-design/icons',
   'antd',
   'rc-util',
@@ -8,6 +10,7 @@ const withTM = require('next-transpile-modules')([
   'rc-table',
 ]);
 
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   // Transpile Ant Design and related packages to fix ESM issues
@@ -27,4 +30,4 @@ const nextConfig = {
   },
 };
 
-module.exports = withTM(nextConfig);
+export default tmConfig(nextConfig);
