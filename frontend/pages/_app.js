@@ -1,20 +1,16 @@
 import AppLayout from "../components/Layout";
 import "../styles/globals.css";
-import { ConfigProvider } from 'antd';
 
 function MyApp({ Component, pageProps }) {
+  // Check if the component opts out of the default layout
   const useLayout = Component.useLayout !== false;
 
-  return (
-    <ConfigProvider>
-      {useLayout ? (
-        <AppLayout>
-          <Component {...pageProps} />
-        </AppLayout>
-      ) : (
-        <Component {...pageProps} />
-      )}
-    </ConfigProvider>
+  return useLayout ? (
+    <AppLayout>
+      <Component {...pageProps} />
+    </AppLayout>
+  ) : (
+    <Component {...pageProps} />
   );
 }
 

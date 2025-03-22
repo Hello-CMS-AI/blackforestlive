@@ -38,6 +38,7 @@ if (!fs.existsSync(uploadDir)) {
 
 // Middleware
 const allowedOrigins = [
+  'http://localhost:3000',
   'https://cp.theblackforestcakes.com',
   'https://blackforestlive.netlify.app/' // Replace with your actual Netlify URL
 ];
