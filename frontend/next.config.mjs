@@ -1,6 +1,5 @@
 import withTM from 'next-transpile-modules';
 
-// Configure packages to transpile
 const tmConfig = withTM([
   '@ant-design/icons',
   'antd',
@@ -24,6 +23,10 @@ const nextConfig = {
   },
   webpack: (config) => {
     config.resolve.fallback = { fs: false, path: false };
+    config.module.rules.push({
+      test: /\.css$/,
+      use: ['style-loader', 'css-loader'],
+    });
     return config;
   },
 };
