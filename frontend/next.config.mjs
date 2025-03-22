@@ -1,12 +1,19 @@
 import withTM from 'next-transpile-modules';
 
+// Transpile all Ant Design and related packages
 const tmConfig = withTM([
-  '@ant-design/icons',
   'antd',
+  '@ant-design/icons',
   'rc-util',
   'rc-picker',
   'rc-tree',
   'rc-table',
+  'rc-select',
+  'rc-field-form',
+  'rc-menu', // Added for Ant Design's menu components (used by Sidebar)
+  'rc-motion', // Added for Ant Design animations
+  'bwip-js',
+  'jwt-decode',
 ]);
 
 /** @type {import('next').NextConfig} */
@@ -17,6 +24,12 @@ const nextConfig = {
     'rc-picker',
     'rc-tree',
     'rc-table',
+    'rc-select',
+    'rc-field-form',
+    'rc-menu', // Added
+    'rc-motion', // Added
+    'bwip-js',
+    'jwt-decode',
   ],
   eslint: {
     ignoreDuringBuilds: true,
