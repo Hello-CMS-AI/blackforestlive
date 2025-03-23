@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Layout, Button, Space, Row, Col, message, Image, Radio, Badge, Tooltip, InputNumber, Select, Dropdown, Menu, Input, DatePicker, Divider, Input as AntInput } from "antd";
+import { Layout, Button, Space, Row, Col, message, Image, Radio, Badge, Tooltip, InputNumber, Select, Dropdown,Input, DatePicker, Divider, Input as AntInput } from "antd";
 import { LogoutOutlined, ShoppingCartOutlined, MenuOutlined, ArrowLeftOutlined, CheckCircleFilled, PlusOutlined, MinusOutlined, CloseOutlined, WalletOutlined, CreditCardOutlined, FileDoneOutlined, SaveOutlined, PrinterOutlined, UserOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import { jwtDecode as jwtDecodeLib } from "jwt-decode";
@@ -63,12 +63,12 @@ const BranchPage = ({ branchId }) => {
     if (typeof window !== 'undefined') {
       const storedToken = localStorage.getItem('token');
       setToken(storedToken);
-
+  
       if (!storedToken) {
         router.replace('/login');
         return;
       }
-
+  
       try {
         const decoded = jwtDecodeLib(storedToken);
         if (decoded.role !== 'branch') {
@@ -81,7 +81,94 @@ const BranchPage = ({ branchId }) => {
         console.error('Error decoding token:', error);
         router.replace('/login');
       }
-
+  
+      // Define fetch functions inside useEffect
+      const fetchBranchDetails = async (token) => {
+        try {
+          const response = await fetch(`${BACKEND_URL}/api/branch/${branchId}`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setBranchName(data.name || `Branch ${branchId.replace('B', '')}`);
+          } else {
+            message.error('Failed to fetch branch details');
+          }
+        } catch (error) {
+          message.error('Error fetching branch details');
+        }
+      };
+  
+      const fetchCategories = async (token) => {
+        setLoading(true);
+        try {
+          const response = await fetch(`${BACKEND_URL}/api/categories/list-categories`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          const data = await response.json();
+          if (response.ok) setCategories(data);
+          else message.error('Failed to fetch categories');
+        } catch (error) {
+          message.error('Error fetching categories');
+        }
+        setLoading(false);
+      };
+  
+      const fetchEmployees = async (token, team, setter) => {
+        try {
+          const response = await fetch(`${BACKEND_URL}/api/employees?team=${team}`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          const data = await response.json();
+          if (response.ok) {
+            const filteredEmployees = data.filter(employee => employee.status === 'Active');
+            setter(filteredEmployees);
+          } else {
+            message.error(`Failed to fetch ${team}s`);
+          }
+        } catch (error) {
+          message.error(`Error fetching ${team}s`);
+        }
+      };
+  
+      const fetchTodayAssignment = async (token) => {
+        try {
+          const response = await fetch(`${BACKEND_URL}/api/daily-assignments/${branchId}/today`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          const data = await response.json();
+          if (response.ok) {
+            setTodayAssignment(data);
+            if (data.cashierId) setSelectedCashier(data.cashierId._id);
+            if (data.managerId) setSelectedManager(data.managerId._id);
+          } else {
+            message.error("Failed to fetch today's assignment");
+          }
+        } catch (error) {
+          message.error("Error fetching today's assignment");
+        }
+      };
+  
+      const fetchTableCategories = async (token) => {
+        setTablesLoading(true);
+        try {
+          const response = await fetch(`${BACKEND_URL}/api/table-categories?branchId=${branchId}`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          const data = await response.json();
+          if (response.ok) {
+            setTableCategories(data.categories);
+          } else {
+            message.error('Failed to fetch table categories');
+            setTableCategories([]);
+          }
+        } catch (error) {
+          message.error('Error fetching table categories');
+          setTableCategories([]);
+        }
+        setTablesLoading(false);
+      };
+  
       fetchBranchDetails(storedToken, branchId);
       fetchCategories(storedToken);
       fetchEmployees(storedToken, 'Cashier', setCashiers);
@@ -89,7 +176,7 @@ const BranchPage = ({ branchId }) => {
       fetchEmployees(storedToken, 'Waiter', setWaiters);
       fetchTodayAssignment(storedToken);
       fetchTableCategories(storedToken);
-
+  
       // Fetch branch inventory
       const fetchBranchInventory = async () => {
         try {
@@ -99,9 +186,9 @@ const BranchPage = ({ branchId }) => {
             },
           });
           const data = await response.json();
-          console.log('Branch Inventory Response:', data); // Add this line
+          console.log('Branch Inventory Response:', data);
           if (response.ok) {
-            setBranchInventory(data); // Array of { productId, inStock, ... }
+            setBranchInventory(data);
           } else {
             message.error('Failed to fetch branch inventory');
           }
@@ -109,48 +196,45 @@ const BranchPage = ({ branchId }) => {
           message.error('Error fetching branch inventory');
         }
       };
-
+  
       if (branchId && storedToken) {
-        fetchBranchInventory(); // Call the fetch function
+        fetchBranchInventory();
       }
-
+  
       setIsMobile(window.innerWidth <= 991);
       setIsPortrait(window.matchMedia("(orientation: portrait)").matches);
-
+  
       const updateContentWidth = () => {
         if (contentRef.current) {
           setContentWidth(contentRef.current.getBoundingClientRect().width);
         }
       };
-
+  
       updateContentWidth();
       window.addEventListener("resize", updateContentWidth);
-
+  
       const handleOrientationChange = (e) => {
         setIsPortrait(e.matches);
         setIsMobileMenuOpen(false);
         updateContentWidth();
       };
-
+  
       const mediaQuery = window.matchMedia("(orientation: portrait)");
       mediaQuery.addEventListener("change", handleOrientationChange);
-
+  
       const handleResize = () => {
         setIsMobile(window.innerWidth <= 991);
         updateContentWidth();
       };
-
+  
       window.addEventListener("resize", handleResize);
-
+  
       return () => {
         mediaQuery.removeEventListener("change", handleOrientationChange);
         window.removeEventListener("resize", handleResize);
       };
     }
-  }, [router, branchId, contentRef.current]);
-
-  // Rest of your existing functions (fetchBranchDetails, fetchCategories, etc.) remain unchanged
-
+  }, [router, branchId, contentRef]); // Fixed contentRef.current to contentRef
   const fetchBranchDetails = async (token) => {
     try {
       const response = await fetch(`${BACKEND_URL}/api/branch/${branchId}`, {
@@ -979,7 +1063,20 @@ const printReceipt = (order, todayAssignment, summary) => {
     hour12: true 
   }).replace(',', '');
 
-  printWindow.document.write(`
+  // Function to escape HTML special characters
+  const escapeHtml = (unsafe) => {
+    if (!unsafe) return '';
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  };
+
+  const doc = printWindow.document;
+  doc.open();
+  doc.write(`
     <html>
       <head>
         <title>Receipt</title>
@@ -1062,66 +1159,155 @@ const printReceipt = (order, todayAssignment, summary) => {
         </style>
       </head>
       <body>
-        <h2>${order.branchId?.name || 'Unknown Branch'}</h2>
-        <p style="text-align: center;">${order.branchId?.address || 'Address Not Available'}</p>
-        <p style="text-align: center;">Phone: ${order.branchId?.phoneNo || 'Phone Not Available'}</p>
-        <p style="text-align: center;">Bill No: ${order.billNo}</p>
-        ${order.tableId ? `<p style="text-align: center;">Table: ${order.tableId.tableNumber}</p>` : ''}
-        <div class="header">
-          <div class="header-left">
-            <p>Date: ${dateTime}</p>
-            <p>Manager: ${todayAssignment?.managerId?.name || 'Not Assigned'}, Waiter: ${order.waiterId?.name || 'Not Assigned'}</p>
-          </div>
-          <div class="header-right">
-            <p>Cashier: ${todayAssignment?.cashierId?.name || 'Not Assigned'}</p>
-          </div>
-        </div>
-        <div class="divider"></div>
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 10%;">SL</th>
-              <th style="width: 40%;">Description</th>
-              <th style="width: 15%;">MRP</th>
-              <th style="width: 15%;">Qty</th>
-              <th style="width: 20%;">Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${order.products.map((product, index) => `
-              <tr>
-                <td>${index + 1}</td>
-                <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                  ${product.name} (${product.quantity}${product.unit}${product.cakeType ? `, ${product.cakeType === 'freshCream' ? 'FC' : 'BC'}` : ''})
-                </td>
-                <td>₹${product.price.toFixed(2)}</td>
-                <td>${product.quantity}</td>
-                <td>₹${product.productTotal.toFixed(2)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-        <div class="divider"></div>
-        <div class="summary">
-          <div><span>Tot Qty:</span><span>${totalQty.toFixed(2)}</span></div>
-          <div><span>Tot Items:</span><span>${totalItems}</span></div>
-          <div><span>Total Amount:</span><span>₹${subtotal.toFixed(2)}</span></div>
-          <div><span>SGST:</span><span>₹${sgst.toFixed(2)}</span></div>
-          <div><span>CGST:</span><span>₹${cgst.toFixed(2)}</span></div>
-          <div><span>Round Off:</span><span>${roundOff >= 0 ? '+' : ''}${roundOff.toFixed(2)}</span></div>
-          <div><span>Net Amt:</span><span>₹${totalWithGSTRounded.toFixed(2)}</span></div>
-        </div>
-        <div class="payment-details">
-          <p>Payment Details:</p>
-          <p>${paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1)} - ₹${totalWithGSTRounded.toFixed(2)}</p>
-          <p>Tender: ₹${tenderAmount.toFixed(2)}</p>
-          <p>Balance: ₹${balance.toFixed(2)}</p>
-        </div>
-        ${order.deliveryDateTime ? `<p>Delivery: ${dayjs(order.deliveryDateTime).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm')}</p>` : ''}
+        <div id="receipt-content"></div>
       </body>
     </html>
   `);
-  printWindow.document.close();
+  doc.close();
+
+  const content = doc.getElementById('receipt-content');
+
+  // Create elements programmatically to avoid escaping issues
+  const h2 = doc.createElement('h2');
+  h2.textContent = escapeHtml(order.branchId?.name || 'Unknown Branch');
+  content.appendChild(h2);
+
+  const addressP = doc.createElement('p');
+  addressP.style.textAlign = 'center';
+  addressP.textContent = escapeHtml(order.branchId?.address || 'Address Not Available');
+  content.appendChild(addressP);
+
+  const phoneP = doc.createElement('p');
+  phoneP.style.textAlign = 'center';
+  phoneP.textContent = `Phone: ${escapeHtml(order.branchId?.phoneNo || 'Phone Not Available')}`;
+  content.appendChild(phoneP);
+
+  const billNoP = doc.createElement('p');
+  billNoP.style.textAlign = 'center';
+  billNoP.textContent = `Bill No: ${escapeHtml(order.billNo)}`;
+  content.appendChild(billNoP);
+
+  if (order.tableId) {
+    const tableP = doc.createElement('p');
+    tableP.style.textAlign = 'center';
+    tableP.textContent = `Table: ${escapeHtml(order.tableId.tableNumber)}`;
+    content.appendChild(tableP);
+  }
+
+  const headerDiv = doc.createElement('div');
+  headerDiv.className = 'header';
+
+  const headerLeft = doc.createElement('div');
+  headerLeft.className = 'header-left';
+  const dateP = doc.createElement('p');
+  dateP.textContent = `Date: ${escapeHtml(dateTime)}`;
+  headerLeft.appendChild(dateP);
+  const managerWaiterP = doc.createElement('p');
+  managerWaiterP.textContent = `Manager: ${escapeHtml(todayAssignment?.managerId?.name || 'Not Assigned')}, Waiter: ${escapeHtml(order.waiterId?.name || 'Not Assigned')}`;
+  headerLeft.appendChild(managerWaiterP);
+  headerDiv.appendChild(headerLeft);
+
+  const headerRight = doc.createElement('div');
+  headerRight.className = 'header-right';
+  const cashierP = doc.createElement('p');
+  cashierP.textContent = `Cashier: ${escapeHtml(todayAssignment?.cashierId?.name || 'Not Assigned')}`;
+  headerRight.appendChild(cashierP);
+  headerDiv.appendChild(headerRight);
+
+  content.appendChild(headerDiv);
+
+  const divider1 = doc.createElement('div');
+  divider1.className = 'divider';
+  content.appendChild(divider1);
+
+  const table = doc.createElement('table');
+  const thead = doc.createElement('thead');
+  const tr = doc.createElement('tr');
+  const headers = ['SL', 'Description', 'MRP', 'Qty', 'Amount'];
+  const widths = ['10%', '40%', '15%', '15%', '20%'];
+  headers.forEach((header, index) => {
+    const th = doc.createElement('th');
+    th.style.width = widths[index];
+    th.textContent = header;
+    tr.appendChild(th);
+  });
+  thead.appendChild(tr);
+  table.appendChild(thead);
+
+  const tbody = doc.createElement('tbody');
+  order.products.forEach((product, index) => {
+    const row = doc.createElement('tr');
+    const cells = [
+      index + 1,
+      `${escapeHtml(product.name)} (${product.quantity}${product.unit}${product.cakeType ? `, ${product.cakeType === 'freshCream' ? 'FC' : 'BC'}` : ''})`,
+      `₹${product.price.toFixed(2)}`,
+      product.quantity,
+      `₹${product.productTotal.toFixed(2)}`,
+    ];
+    cells.forEach((cell, cellIndex) => {
+      const td = doc.createElement('td');
+      if (cellIndex === 1) {
+        td.style.whiteSpace = 'nowrap';
+        td.style.overflow = 'hidden';
+        td.style.textOverflow = 'ellipsis';
+      }
+      td.textContent = cell;
+      row.appendChild(td);
+    });
+    tbody.appendChild(row);
+  });
+  table.appendChild(tbody);
+  content.appendChild(table);
+
+  const divider2 = doc.createElement('div');
+  divider2.className = 'divider';
+  content.appendChild(divider2);
+
+  const summaryDiv = doc.createElement('div');
+  summaryDiv.className = 'summary';
+  const summaryItems = [
+    { label: 'Tot Qty:', value: totalQty.toFixed(2) },
+    { label: 'Tot Items:', value: totalItems },
+    { label: 'Total Amount:', value: `₹${subtotal.toFixed(2)}` },
+    { label: 'SGST:', value: `₹${sgst.toFixed(2)}` },
+    { label: 'CGST:', value: `₹${cgst.toFixed(2)}` },
+    { label: 'Round Off:', value: `${roundOff >= 0 ? '+' : ''}${roundOff.toFixed(2)}` },
+    { label: 'Net Amt:', value: `₹${totalWithGSTRounded.toFixed(2)}` },
+  ];
+  summaryItems.forEach(item => {
+    const div = doc.createElement('div');
+    const spanLabel = doc.createElement('span');
+    spanLabel.textContent = item.label;
+    const spanValue = doc.createElement('span');
+    spanValue.textContent = item.value;
+    div.appendChild(spanLabel);
+    div.appendChild(spanValue);
+    summaryDiv.appendChild(div);
+  });
+  content.appendChild(summaryDiv);
+
+  const paymentDetails = doc.createElement('div');
+  paymentDetails.className = 'payment-details';
+  const paymentP = doc.createElement('p');
+  paymentP.textContent = 'Payment Details:';
+  paymentDetails.appendChild(paymentP);
+  const methodP = doc.createElement('p');
+  methodP.textContent = `${paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1)} - ₹${totalWithGSTRounded.toFixed(2)}`;
+  paymentDetails.appendChild(methodP);
+  const tenderP = doc.createElement('p');
+  tenderP.textContent = `Tender: ₹${tenderAmount.toFixed(2)}`;
+  paymentDetails.appendChild(tenderP);
+  const balanceP = doc.createElement('p');
+  balanceP.textContent = `Balance: ₹${balance.toFixed(2)}`;
+  paymentDetails.appendChild(balanceP);
+  content.appendChild(paymentDetails);
+
+  if (order.deliveryDateTime) {
+    const deliveryP = doc.createElement('p');
+    deliveryP.textContent = `Delivery: ${dayjs(order.deliveryDateTime).tz('Asia/Kolkata').format('DD/MM/YYYY HH:mm')}`;
+    content.appendChild(deliveryP);
+  }
+
   printWindow.print();
   printWindow.close();
 };
