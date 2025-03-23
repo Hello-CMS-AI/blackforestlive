@@ -13,7 +13,7 @@ const CreateDealer = () => {
     setLoading(true);
     setErrors({ phone_no: '', gst: '' }); // Clear previous errors
     try {
-      const response = await fetch('https://api10.theblackforestcakes.com/api/dealers', {
+      const response = await fetch('http://localhost:5000/api/dealers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

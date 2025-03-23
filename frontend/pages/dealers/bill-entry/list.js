@@ -40,7 +40,7 @@ const BillEntryList = () => {
   const fetchBills = async () => {
     setLoading(true);
     try {
-      const response = await fetch('https://api10.theblackforestcakes.com/api/dealers/bills', {
+      const response = await fetch('http://localhost:5000/api/dealers/bills', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         cache: 'no-store',
@@ -63,7 +63,7 @@ const BillEntryList = () => {
 
   const fetchBranches = async () => {
     try {
-      const response = await fetch('https://api10.theblackforestcakes.com/api/branches/public', {
+      const response = await fetch('http://localhost:5000/api/branches/public', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -81,7 +81,7 @@ const BillEntryList = () => {
 
   const fetchDealers = async () => {
     try {
-      const response = await fetch('https://api10.theblackforestcakes.com/api/dealers', {
+      const response = await fetch('http://localhost:5000/api/dealers', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -277,7 +277,7 @@ const BillEntryList = () => {
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              showModal(`https://api10.theblackforestcakes.com/${record.billImage}`);
+              showModal(`http://localhost:5000/${record.billImage}`);
             }}
           >
             Bill
@@ -325,13 +325,13 @@ const BillEntryList = () => {
               type="default"
               size="large"
               icon={<StockOutlined />}
-              href="https://cp.theblackforestcakes.com/dealers/stock-entry/create"
+              href="http://localhost:3000/dealers/stock-entry/create"
             />
             {/* Stock List Button */}
             <Button
               type="default"
               size="large"
-              href="https://cp.theblackforestcakes.com/dealers/stock-entry/list"
+              href="http://localhost:3000/dealers/stock-entry/list"
             >
               Stock List
             </Button>
@@ -340,13 +340,13 @@ const BillEntryList = () => {
               type="default"
               size="large"
               icon={<FileDoneOutlined />}
-              href="https://cp.theblackforestcakes.com/dealers/closing-entry/closingentry"
+              href="http://localhost:3000/dealers/closing-entry/closingentry"
             />
             {/* Closing Entry List Button */}
             <Button
               type="default"
               size="large"
-              href="https://cp.theblackforestcakes.com/dealers/closing-entry/list"
+              href="http://localhost:3000/dealers/closing-entry/list"
             >
               Closing Entry List
             </Button>
@@ -355,7 +355,7 @@ const BillEntryList = () => {
               type="default"
               size="large"
               icon={<DollarOutlined />}
-              href="https://cp.theblackforestcakes.com/dealers/expense/ExpenseEntry"
+              href="http://localhost:3000/dealers/expense/ExpenseEntry"
             >
               Expense Entry
             </Button>

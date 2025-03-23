@@ -14,7 +14,7 @@ const EditDealer = () => {
     if (id) {
       const fetchDealer = async () => {
         try {
-          const response = await fetch(`https://api10.theblackforestcakes.com/api/dealers/${id}`, {
+          const response = await fetch(`http://localhost:5000/api/dealers/${id}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ const EditDealer = () => {
     setLoading(true);
     setErrors({ phone_no: '', gst: '' });
     try {
-      const response = await fetch(`https://api10.theblackforestcakes.com/api/dealers/${id}`, {
+      const response = await fetch(`http://localhost:5000/api/dealers/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -60,7 +60,7 @@ const ClosingEntry = () => {
   const fetchBranches = async () => {
     setLoading(true);
     try {
-      const response = await fetch('https://api10.theblackforestcakes.com/api/branches/public', {
+      const response = await fetch('http://localhost:5000/api/branches/public', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -120,7 +120,7 @@ const ClosingEntry = () => {
 
     setSubmitting(true);
     try {
-      const response = await fetch('https://api10.theblackforestcakes.com/api/closing-entries', {
+      const response = await fetch('http://localhost:5000/api/closing-entries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
