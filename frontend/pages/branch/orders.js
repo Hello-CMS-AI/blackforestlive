@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/router";
 import { jwtDecode } from "jwt-decode";
 import { Button, Table, Input, Select, DatePicker, Modal, Space, Tag, message, InputNumber, Typography } from "antd";
@@ -15,8 +15,8 @@ const { RangePicker } = DatePicker;
 const { Text } = Typography;
 
 const OrderListPage = ({ branchId }) => {
+  const storedToken = localStorage.getItem("token");
   const router = useRouter();
-  const [token, setToken] = useState(null);
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [branches, setBranches] = useState([]);
@@ -144,7 +144,7 @@ const OrderListPage = ({ branchId }) => {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${storedToken}`,
         },
         body: JSON.stringify({ products: updatedProducts }),
       });
@@ -170,9 +170,6 @@ const OrderListPage = ({ branchId }) => {
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "https://apib.dinasuvadu.in";
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    setToken(storedToken);
-
     if (!storedToken) {
       router.replace("/login");
       return;
@@ -195,16 +192,16 @@ const OrderListPage = ({ branchId }) => {
     fetchBranches(storedToken);
     fetchCategories(storedToken);
     fetchProducts(storedToken);
-  }, [router]);
+  }, [router, fetchOrders, fetchBranches, fetchCategories, fetchProducts]);
 
-  const fetchOrders = async (token) => {
+  const fetchOrders = async (storedToken) => {
     setLoading(true);
     try {
       const url = branchId
         ? `${BACKEND_URL}/api/orders?branchId=${branchId}`
         : `${BACKEND_URL}/api/orders`;
       const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${storedToken}` },
       });
       const data = await response.json();
       if (response.ok) {
@@ -222,10 +219,10 @@ const OrderListPage = ({ branchId }) => {
     setLoading(false);
   };
 
-  const fetchBranches = async (token) => {
+  const fetchBranches = async (storedToken) => {
     try {
       const response = await fetch(`${BACKEND_URL}/api/branches`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${storedToken}` },
       });
       const data = await response.json();
       if (response.ok) {
@@ -239,10 +236,10 @@ const OrderListPage = ({ branchId }) => {
     }
   };
 
-  const fetchCategories = async (token) => {
+  const fetchCategories = async (storedToken) => {
     try {
       const response = await fetch(`${BACKEND_URL}/api/categories/list-categories`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${storedToken}` },
       });
       const data = await response.json();
       if (response.ok) {
@@ -258,10 +255,10 @@ const OrderListPage = ({ branchId }) => {
     }
   };
 
-  const fetchProducts = async (token) => {
+  const fetchProducts = async (storedToken) => {
     try {
       const response = await fetch(`${BACKEND_URL}/api/products`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${storedToken}` },
       });
       const data = await response.json();
       if (response.ok) {
@@ -279,7 +276,7 @@ const OrderListPage = ({ branchId }) => {
     try {
       const formattedDate = dayjs(date).format("YYYY-MM-DD");
       const response = await fetch(`${BACKEND_URL}/api/daily-assignments/${branchId}/by-date/${formattedDate}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${storedToken}` },
       });
       const data = await response.json();
       if (response.ok) {
@@ -435,7 +432,7 @@ const OrderListPage = ({ branchId }) => {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${storedToken}`,
         },
         body: JSON.stringify({ status: newStatus }),
       });
@@ -463,7 +460,7 @@ const OrderListPage = ({ branchId }) => {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${storedToken}`,
         },
         body: JSON.stringify({ status: "delivered" }),
       });
@@ -491,7 +488,7 @@ const OrderListPage = ({ branchId }) => {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${storedToken}`,
         },
         body: JSON.stringify({ status: "received" }),
       });
@@ -521,7 +518,7 @@ const OrderListPage = ({ branchId }) => {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${storedToken}`,
         },
         body: JSON.stringify({ products: selectedOrder.products }),
       });
@@ -564,7 +561,7 @@ const OrderListPage = ({ branchId }) => {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${storedToken}`,
         },
         body: JSON.stringify({ status: newStatus }),
       });
@@ -605,7 +602,7 @@ const OrderListPage = ({ branchId }) => {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${storedToken}`,
         },
         body: JSON.stringify({ products: updatedProducts }),
       });
