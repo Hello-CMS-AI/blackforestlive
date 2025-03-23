@@ -37,7 +37,11 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // Middleware
-app.use(cors({ origin: '*' }));
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://blackforestlive.netlify.app'], // Replace with your Netlify URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
+  credentials: true // If you need cookies or auth headers
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));

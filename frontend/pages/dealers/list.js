@@ -12,7 +12,7 @@ const DealerList = () => {
   const fetchDealers = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/dealers', {
+      const response = await fetch('https://apib.dinasuvadu.in/api/dealers', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -36,7 +36,7 @@ const DealerList = () => {
   // Handle delete action with confirmation
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/dealers/${id}`, {
+      const response = await fetch(`https://apib.dinasuvadu.in/api/dealers/${id}`, {
         method: 'DELETE',
       });
 

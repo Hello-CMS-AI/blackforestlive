@@ -12,7 +12,7 @@ const DealerCategoryList = () => {
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/dealer/categories', {
+      const response = await fetch('https://apib.dinasuvadu.in/api/dealer/categories', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -36,7 +36,7 @@ const DealerCategoryList = () => {
   // Handle delete action with confirmation
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/dealer/categories/${id}`, {
+      const response = await fetch(`https://apib.dinasuvadu.in/api/dealer/categories/${id}`, {
         method: 'DELETE',
       });
 
