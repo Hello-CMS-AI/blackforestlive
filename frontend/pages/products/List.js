@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Input, Button, Space, Tag, Select, Popconfirm, message, Modal, Image, Tooltip } from 'antd';
 import { SearchOutlined, EditOutlined, DeleteOutlined, PlusOutlined, EyeOutlined, EyeInvisibleOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/router';
-import { CSVLink } from 'react-csv';
+import Papa from 'papaparse';
 
 const { Option } = Select;
 
@@ -13,7 +13,7 @@ const ProductList = () => {
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedPastry, setSelectedPastry] = useState(null); // ✅ Added for Pastry filter
+  const [selectedPastry, setSelectedPastry] = useState(null);
   const [selectedStock, setSelectedStock] = useState(null);
   const [selectedVeg, setSelectedVeg] = useState(null);
   const [selectedType, setSelectedType] = useState(null);
@@ -86,14 +86,14 @@ const ProductList = () => {
   // Handle Filters
   const handleFilterChange = (filterType, value) => {
     if (filterType === 'category') setSelectedCategory(value);
-    if (filterType === 'pastry') setSelectedPastry(value); // ✅ Handle Pastry filter
+    if (filterType === 'pastry') setSelectedPastry(value);
     if (filterType === 'stock') setSelectedStock(value);
     if (filterType === 'veg') setSelectedVeg(value);
     if (filterType === 'type') setSelectedType(value);
     filterProducts(
       searchText,
       filterType === 'category' ? value : selectedCategory,
-      filterType === 'pastry' ? value : selectedPastry, // ✅ Pass Pastry filter
+      filterType === 'pastry' ? value : selectedPastry,
       filterType === 'stock' ? value : selectedStock,
       filterType === 'veg' ? value : selectedVeg,
       filterType === 'type' ? value : selectedType
@@ -116,7 +116,7 @@ const ProductList = () => {
       filtered = filtered.filter(product => product.category?._id === category);
     }
 
-    if (pastry !== null && pastry !== undefined) { // ✅ Added Pastry filter logic
+    if (pastry !== null && pastry !== undefined) {
       filtered = filtered.filter(product => product.isPastry === (pastry === 'pastry'));
     }
 
@@ -139,7 +139,7 @@ const ProductList = () => {
   const clearFilters = () => {
     setSearchText('');
     setSelectedCategory(null);
-    setSelectedPastry(null); // ✅ Clear Pastry filter
+    setSelectedPastry(null);
     setSelectedStock(null);
     setSelectedVeg(null);
     setSelectedType(null);
@@ -201,9 +201,26 @@ const ProductList = () => {
     'Cake Type': product.priceDetails.map(d => d.cakeType || '').join(', '),
     Stock: product.inStock,
     Veg: product.isVeg ? 'Yes' : 'No',
-    Pastry: product.isPastry ? 'Yes' : 'No', // ✅ Added Pastry to CSV
+    Pastry: product.isPastry ? 'Yes' : 'No',
     Type: product.productType,
   }));
+
+  // Define downloadCSV function for papaparse
+  const downloadCSV = () => {
+    if (!csvData || csvData.length === 0) {
+      message.warning('No data available to download');
+      return;
+    }
+    const filename = `products_${new Date().toISOString().slice(0, 10)}.csv`;
+    const csv = Papa.unparse(csvData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.click();
+    URL.revokeObjectURL(url);
+  };
 
   // Table Columns
   const columns = [
@@ -301,13 +318,9 @@ const ProductList = () => {
           <Button type="primary" icon={<PlusOutlined />} onClick={() => router.push('/products/add')}>
             Create Product
           </Button>
-          <CSVLink
-            data={csvData}
-            filename={`products_${new Date().toISOString().slice(0, 10)}.csv`}
-            target="_blank"
-          >
-            <Button icon={<DownloadOutlined />}>Export CSV</Button>
-          </CSVLink>
+          <Button icon={<DownloadOutlined />} onClick={downloadCSV}>
+            Export CSV
+          </Button>
         </Space>
       </div>
 
@@ -332,7 +345,7 @@ const ProductList = () => {
           ))}
         </Select>
         <Select
-          placeholder="Pastry" // ✅ Added Pastry filter
+          placeholder="Pastry"
           onChange={(value) => handleFilterChange('pastry', value)}
           allowClear
           style={{ width: '150px' }}
