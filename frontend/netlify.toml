@@ -1,2 +1,8 @@
 [build]
-  environment = { NODE_VERSION = "20.0.0" }
+  base = "frontend"
+  command = "npm run build"
+  publish = ".next"
+  environment = { NODE_VERSION = "20.17.0" }
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
