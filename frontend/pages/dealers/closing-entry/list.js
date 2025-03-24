@@ -281,13 +281,13 @@ const ClosingEntryList = () => {
               type="default"
               size="large"
               icon={<StockOutlined />}
-              href="http://localhost:3000/dealers/stock-entry/create"
+              href="http://159.89.163.222/dealers/stock-entry/create"
             />
             {/* Stock Text Button (List) */}
             <Button
               type="default"
               size="large"
-              href="http://localhost:3000/dealers/stock-entry/list"
+              href="http://159.89.163.222/dealers/stock-entry/list"
             >
               Stock List
             </Button>
@@ -296,13 +296,13 @@ const ClosingEntryList = () => {
               type="default"
               size="large"
               icon={<FileTextOutlined />}
-              href="http://localhost:3000/dealers/bill-entry/create"
+              href="http://159.89.163.222/dealers/bill-entry/create"
             />
             {/* Bill Entry Text Button (List) */}
             <Button
               type="default"
               size="large"
-              href="http://localhost:3000/dealers/bill-entry/list"
+              href="http://159.89.163.222/dealers/bill-entry/list"
             >
               Bill Entry List
             </Button>
@@ -311,7 +311,7 @@ const ClosingEntryList = () => {
               type="default"
               size="large"
               icon={<DollarOutlined />}
-              href="http://localhost:3000/dealers/expense/ExpenseEntry"
+              href="http://159.89.163.222/dealers/expense/ExpenseEntry"
             >
               Expense Entry
             </Button>
@@ -413,7 +413,7 @@ const ClosingEntryList = () => {
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
-                    href="http://localhost:3000/dealers/closing-entry/closingentry"
+                    href="http://159.89.163.222/dealers/closing-entry/closingentry"
                   >
                     Create Closing Bill
                   </Button>

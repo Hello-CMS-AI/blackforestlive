@@ -395,13 +395,13 @@ const ExpenseEntry = () => {
               type="default"
               size="large"
               icon={<StockOutlined />}
-              href="http://localhost:3000/dealers/stock-entry/create"
+              href="http://159.89.163.222/dealers/stock-entry/create"
             />
             {/* Stock List Button */}
             <Button
               type="default"
               size="large"
-              href="http://localhost:3000/dealers/stock-entry/list"
+              href="http://159.89.163.222/dealers/stock-entry/list"
             >
               Stock List
             </Button>
@@ -410,13 +410,13 @@ const ExpenseEntry = () => {
               type="default"
               size="large"
               icon={<FileTextOutlined />}
-              href="http://localhost:3000/dealers/bill-entry/create"
+              href="http://159.89.163.222/dealers/bill-entry/create"
             />
             {/* Bill Entry List Button */}
             <Button
               type="default"
               size="large"
-              href="http://localhost:3000/dealers/bill-entry/list"
+              href="http://159.89.163.222/dealers/bill-entry/list"
             >
               Bill Entry
             </Button>
@@ -425,13 +425,13 @@ const ExpenseEntry = () => {
               type="default"
               size="large"
               icon={<FileDoneOutlined />}
-              href="http://localhost:3000/dealers/closing-entry/closingentry"
+              href="http://159.89.163.222/dealers/closing-entry/closingentry"
             />
             {/* Closing Entry List Button */}
             <Button
               type="default"
               size="large"
-              href="http://localhost:3000/dealers/closing-entry/list"
+              href="http://159.89.163.222/dealers/closing-entry/list"
             >
               Closing Entry List
             </Button>
@@ -440,7 +440,7 @@ const ExpenseEntry = () => {
               type="default"
               size="large"
               icon={<DollarOutlined />}
-              href="http://localhost:3000/dealers/expense/ExpenseEntry"
+              href="http://159.89.163.222/dealers/expense/ExpenseEntry"
             >
               Expense Entry
             </Button>
