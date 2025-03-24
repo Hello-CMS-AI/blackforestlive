@@ -9,10 +9,10 @@ const CategoryDashboard = () => {
   const stockMenu = (
     <Menu>
       <Menu.Item key="create">
-        <a href="https://apib.dinasuvadu.in/dealers/stock-entry/create">Create</a>
+        <a href="https://blackforestlive.netlify.app/dealers/stock-entry/create">Create</a>
       </Menu.Item>
       <Menu.Item key="list">
-        <a href="https://apib.dinasuvadu.in/dealers/stock-entry/list">List</a>
+        <a href="https://blackforestlive.netlify.app/dealers/stock-entry/list">List</a>
       </Menu.Item>
     </Menu>
   );
@@ -21,10 +21,10 @@ const CategoryDashboard = () => {
   const billMenu = (
     <Menu>
       <Menu.Item key="create">
-        <a href="https://apib.dinasuvadu.in/dealers/bill-entry/create">Create</a>
+        <a href="https://blackforestlive.netlify.app/dealers/bill-entry/create">Create</a>
       </Menu.Item>
       <Menu.Item key="list">
-        <a href="https://apib.dinasuvadu.in/dealers/bill-entry/list">List</a>
+        <a href="https://blackforestlive.netlify.app/dealers/bill-entry/list">List</a>
       </Menu.Item>
     </Menu>
   );
@@ -33,10 +33,10 @@ const CategoryDashboard = () => {
   const closingMenu = (
     <Menu>
       <Menu.Item key="create">
-        <a href="https://apib.dinasuvadu.in/dealers/closing-entry/closingentry">Create</a>
+        <a href="https://blackforestlive.netlify.app/dealers/closing-entry/closingentry">Create</a>
       </Menu.Item>
       <Menu.Item key="list">
-        <a href="https://apib.dinasuvadu.in/dealers/closing-entry/list">List</a>
+        <a href="https://blackforestlive.netlify.app/dealers/closing-entry/list">List</a>
       </Menu.Item>
     </Menu>
   );
@@ -175,7 +175,7 @@ const CategoryDashboard = () => {
                 type="default"
                 size="large"
                 icon={<DollarOutlined />}
-                href="https://apib.dinasuvadu.in/dealers/expense/ExpenseEntry"
+                href="https://blackforestlive.netlify.app/dealers/expense/ExpenseEntry"
                 style={{ width: '150px' }}
               >
                 Expense Entry
@@ -206,7 +206,7 @@ const CategoryDashboard = () => {
                 type="default"
                 size="large"
                 icon={<BankOutlined />}
-                href="https://apib.dinasuvadu.in/FinancialManagement"
+                href="https://blackforestlive.netlify.app/FinancialManagement"
                 style={{ width: '150px' }}
               >
                 Finance
