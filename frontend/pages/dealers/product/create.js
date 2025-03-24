@@ -15,7 +15,7 @@ const CreateProduct = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/dealer/categories', {
+        const response = await fetch('http://139.59.82.174/api/dealer/categories', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ const CreateProduct = () => {
     setLoading(true);
     setErrors({ product_name: '', category: '', barcode_no: '' }); // Clear previous errors
     try {
-      const response = await fetch('http://localhost:5000/api/dealer/products', {
+      const response = await fetch('http://139.59.82.174/api/dealer/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

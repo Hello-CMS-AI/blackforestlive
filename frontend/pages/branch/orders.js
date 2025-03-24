@@ -167,7 +167,7 @@ const OrderListPage = ({ branchId }) => {
     }
   };
 
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://139.59.82.174";
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");

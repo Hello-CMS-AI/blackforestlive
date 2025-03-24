@@ -37,7 +37,11 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // Middleware
-app.use(cors({ origin: '*' }));
+app.use(cors({
+  origin: '*', // Allow all origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: false // Set to false when using '*' (credentials not supported with wildcard)
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));

@@ -9,10 +9,10 @@ const CategoryDashboard = () => {
   const stockMenu = (
     <Menu>
       <Menu.Item key="create">
-        <a href="http://localhost:3000/dealers/stock-entry/create">Create</a>
+        <a href="http://139.59.82.174/dealers/stock-entry/create">Create</a>
       </Menu.Item>
       <Menu.Item key="list">
-        <a href="http://localhost:3000/dealers/stock-entry/list">List</a>
+        <a href="http://139.59.82.174/dealers/stock-entry/list">List</a>
       </Menu.Item>
     </Menu>
   );
@@ -21,10 +21,10 @@ const CategoryDashboard = () => {
   const billMenu = (
     <Menu>
       <Menu.Item key="create">
-        <a href="http://localhost:3000/dealers/bill-entry/create">Create</a>
+        <a href="http://139.59.82.174/dealers/bill-entry/create">Create</a>
       </Menu.Item>
       <Menu.Item key="list">
-        <a href="http://localhost:3000/dealers/bill-entry/list">List</a>
+        <a href="http://139.59.82.174/dealers/bill-entry/list">List</a>
       </Menu.Item>
     </Menu>
   );
@@ -33,10 +33,10 @@ const CategoryDashboard = () => {
   const closingMenu = (
     <Menu>
       <Menu.Item key="create">
-        <a href="http://localhost:3000/dealers/closing-entry/closingentry">Create</a>
+        <a href="http://139.59.82.174/dealers/closing-entry/closingentry">Create</a>
       </Menu.Item>
       <Menu.Item key="list">
-        <a href="http://localhost:3000/dealers/closing-entry/list">List</a>
+        <a href="http://139.59.82.174/dealers/closing-entry/list">List</a>
       </Menu.Item>
     </Menu>
   );
@@ -175,7 +175,7 @@ const CategoryDashboard = () => {
                 type="default"
                 size="large"
                 icon={<DollarOutlined />}
-                href="http://localhost:3000/dealers/expense/ExpenseEntry"
+                href="http://139.59.82.174/dealers/expense/ExpenseEntry"
                 style={{ width: '150px' }}
               >
                 Expense Entry
@@ -206,7 +206,7 @@ const CategoryDashboard = () => {
                 type="default"
                 size="large"
                 icon={<BankOutlined />}
-                href="http://localhost:3000/FinancialManagement"
+                href="http://139.59.82.174/FinancialManagement"
                 style={{ width: '150px' }}
               >
                 Finance

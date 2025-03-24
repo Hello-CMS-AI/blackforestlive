@@ -13,7 +13,7 @@ const EmployeeCreatePage = () => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://139.59.82.174';
 
   const onFinish = async (values) => {
     setLoading(true);
