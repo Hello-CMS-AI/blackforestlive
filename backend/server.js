@@ -38,9 +38,9 @@ if (!fs.existsSync(uploadDir)) {
 
 // Middleware
 app.use(cors({
-  origin: '*', // Allow all origins
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: false // Set to false when using '*' (credentials not supported with wildcard)
+  origin: ['http://localhost:3000','http://159.89.163.222', 'https://cp.theblackforestcakes.com'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
+  credentials: true // If you need cookies or auth headers
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
