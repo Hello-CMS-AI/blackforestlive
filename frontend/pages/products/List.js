@@ -22,7 +22,7 @@ const ProductList = () => {
   const [pageSize, setPageSize] = useState(10);
   const router = useRouter();
 
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://139.59.82.174';
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://159.89.163.222';
 
   useEffect(() => {
     const token = localStorage.getItem('token');

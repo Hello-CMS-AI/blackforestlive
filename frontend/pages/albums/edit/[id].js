@@ -8,7 +8,7 @@ const EditAlbum = () => {
   const [album, setAlbum] = useState(null);
   const router = useRouter();
   const { id } = router.query;
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://139.59.82.174';
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://159.89.163.222';
 
   // ✅ Fetch Album Details When Page Loads
   useEffect(() => {

@@ -30,7 +30,7 @@ const EditBillEntry = () => {
   const fetchBillData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://139.59.82.174/api/dealers/bills/${id}`, {
+      const response = await fetch(`http://159.89.163.222/api/dealers/bills/${id}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -38,7 +38,7 @@ const EditBillEntry = () => {
       if (response.ok) {
         setBillData(result);
         const initialFileList = result.billImage
-          ? [{ uid: '-1', name: 'Current Image', status: 'done', url: `http://139.59.82.174/${result.billImage}` }]
+          ? [{ uid: '-1', name: 'Current Image', status: 'done', url: `http://159.89.163.222/${result.billImage}` }]
           : [];
         setFileList(initialFileList);
         form.setFieldsValue({
@@ -62,7 +62,7 @@ const EditBillEntry = () => {
 
   const fetchDealers = async () => {
     try {
-      const response = await fetch('http://139.59.82.174/api/dealers', {
+      const response = await fetch('http://159.89.163.222/api/dealers', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -80,7 +80,7 @@ const EditBillEntry = () => {
 
   const fetchBranches = async () => {
     try {
-      const response = await fetch('http://139.59.82.174/api/branches/public', {
+      const response = await fetch('http://159.89.163.222/api/branches/public', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -122,7 +122,7 @@ const EditBillEntry = () => {
     }
 
     try {
-      const response = await fetch(`http://139.59.82.174/api/dealers/bills/${id}`, {
+      const response = await fetch(`http://159.89.163.222/api/dealers/bills/${id}`, {
         method: 'PUT',
         body: formData,
       });

@@ -34,7 +34,7 @@ const StockEntryList = () => {
   const fetchStockEntries = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://139.59.82.174/api/dealer/stock-entries', {
+      const response = await fetch('http://159.89.163.222/api/dealer/stock-entries', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -57,7 +57,7 @@ const StockEntryList = () => {
   // Fetch dealers
   const fetchDealers = async () => {
     try {
-      const response = await fetch('http://139.59.82.174/api/dealers', {
+      const response = await fetch('http://159.89.163.222/api/dealers', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -76,7 +76,7 @@ const StockEntryList = () => {
   // Fetch categories
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://139.59.82.174/api/dealer/categories', {
+      const response = await fetch('http://159.89.163.222/api/dealer/categories', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -95,7 +95,7 @@ const StockEntryList = () => {
   // Fetch products
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://139.59.82.174/api/dealer/products', {
+      const response = await fetch('http://159.89.163.222/api/dealer/products', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -114,7 +114,7 @@ const StockEntryList = () => {
   // Handle delete action with confirmation
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://139.59.82.174/api/dealer/stock-entries/${id}`, {
+      const response = await fetch(`http://159.89.163.222/api/dealer/stock-entries/${id}`, {
         method: 'DELETE',
       });
       const result = await response.json();
@@ -367,13 +367,13 @@ const StockEntryList = () => {
               type="default"
               size="large"
               icon={<FileTextOutlined />}
-              href="http://139.59.82.174/dealers/bill-entry/create"
+              href="http://159.89.163.222/dealers/bill-entry/create"
             />
             {/* Bill Entry Text Button (List) */}
             <Button
               type="default"
               size="large"
-              href="http://139.59.82.174/dealers/bill-entry/list"
+              href="http://159.89.163.222/dealers/bill-entry/list"
             >
               Bill Entry
             </Button>
@@ -382,13 +382,13 @@ const StockEntryList = () => {
               type="default"
               size="large"
               icon={<FileDoneOutlined />}
-              href="http://139.59.82.174/dealers/closing-entry/closingentry"
+              href="http://159.89.163.222/dealers/closing-entry/closingentry"
             />
             {/* Closing Entry List Button */}
             <Button
               type="default"
               size="large"
-              href="http://139.59.82.174/dealers/closing-entry/list"
+              href="http://159.89.163.222/dealers/closing-entry/list"
             >
               Closing Entry List
             </Button>
@@ -397,7 +397,7 @@ const StockEntryList = () => {
               type="default"
               size="large"
               icon={<DollarOutlined />}
-              href="http://139.59.82.174/dealers/expense/ExpenseEntry"
+              href="http://159.89.163.222/dealers/expense/ExpenseEntry"
             >
               Expense Entry
             </Button>

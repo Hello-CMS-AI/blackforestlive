@@ -16,7 +16,7 @@ const AddBranchPage = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://139.59.82.174'}/api/branches`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://159.89.163.222'}/api/branches`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -13,7 +13,7 @@ const CreateDealer = () => {
     setLoading(true);
     setErrors({ phone_no: '', gst: '' }); // Clear previous errors
     try {
-      const response = await fetch('http://139.59.82.174/api/dealers', {
+      const response = await fetch('http://159.89.163.222/api/dealers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

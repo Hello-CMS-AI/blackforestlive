@@ -19,7 +19,7 @@ const EmployeeListPage = () => {
   const [selectedStatus, setSelectedStatus] = useState('Active'); // Default to "Active"
   const router = useRouter();
 
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://139.59.82.174';
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://159.89.163.222';
 
   useEffect(() => {
     const token = localStorage.getItem('token');

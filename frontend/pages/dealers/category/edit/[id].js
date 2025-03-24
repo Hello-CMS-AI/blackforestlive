@@ -16,7 +16,7 @@ const EditDealerCategory = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('http://139.59.82.174/api/dealer/categories', {
+        const response = await fetch('http://159.89.163.222/api/dealer/categories', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -42,7 +42,7 @@ const EditDealerCategory = () => {
     if (id) {
       const fetchCategory = async () => {
         try {
-          const response = await fetch(`http://139.59.82.174/api/dealer/categories/${id}`, {
+          const response = await fetch(`http://159.89.163.222/api/dealer/categories/${id}`, {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ const EditDealerCategory = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://139.59.82.174/api/dealer/categories/${id}`, {
+      const response = await fetch(`http://159.89.163.222/api/dealer/categories/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
