@@ -60,7 +60,7 @@ const ClosingEntry = () => {
   const fetchBranches = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://159.89.163.222/api/branches/public', {
+      const response = await fetch('https://apib.dinasuvadu.in/api/branches/public', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -120,7 +120,7 @@ const ClosingEntry = () => {
 
     setSubmitting(true);
     try {
-      const response = await fetch('http://159.89.163.222/api/closing-entries', {
+      const response = await fetch('https://apib.dinasuvadu.in/api/closing-entries', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -21,7 +21,7 @@ const ProductForm = () => {
   const [isPastry, setIsPastry] = useState(false);
   const router = useRouter();
 
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://159.89.163.222';
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://apib.dinasuvadu.in';
 
   const fetchCategories = async () => {
     try {

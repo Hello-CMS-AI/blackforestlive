@@ -3,7 +3,7 @@ import { Table, Button, Space, message, Input } from 'antd';
 import { PrinterOutlined, PlusOutlined, MinusOutlined } from '@ant-design/icons';
 import bwipjs from 'bwip-js'; // ✅ Barcode Generator for Print View
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://159.89.163.222';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://apib.dinasuvadu.in';
 
 const BarcodePrint = () => {
   const [products, setProducts] = useState([]);

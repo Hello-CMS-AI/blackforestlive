@@ -38,7 +38,7 @@ if (!fs.existsSync(uploadDir)) {
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000','http://159.89.163.222', 'https://cp.theblackforestcakes.com'],
+    origin: '*', // Allow all origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
   credentials: true // If you need cookies or auth headers
 }));

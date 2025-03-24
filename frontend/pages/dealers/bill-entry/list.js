@@ -40,7 +40,7 @@ const BillEntryList = () => {
   const fetchBills = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://159.89.163.222/api/dealers/bills', {
+      const response = await fetch('https://apib.dinasuvadu.in/api/dealers/bills', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         cache: 'no-store',
@@ -63,7 +63,7 @@ const BillEntryList = () => {
 
   const fetchBranches = async () => {
     try {
-      const response = await fetch('http://159.89.163.222/api/branches/public', {
+      const response = await fetch('https://apib.dinasuvadu.in/api/branches/public', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -81,7 +81,7 @@ const BillEntryList = () => {
 
   const fetchDealers = async () => {
     try {
-      const response = await fetch('http://159.89.163.222/api/dealers', {
+      const response = await fetch('https://apib.dinasuvadu.in/api/dealers', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -277,7 +277,7 @@ const BillEntryList = () => {
             href="#"
             onClick={(e) => {
               e.preventDefault();
-              showModal(`http://159.89.163.222/${record.billImage}`);
+              showModal(`https://apib.dinasuvadu.in/${record.billImage}`);
             }}
           >
             Bill
@@ -325,13 +325,13 @@ const BillEntryList = () => {
               type="default"
               size="large"
               icon={<StockOutlined />}
-              href="http://159.89.163.222/dealers/stock-entry/create"
+              href="https://apib.dinasuvadu.in/dealers/stock-entry/create"
             />
             {/* Stock List Button */}
             <Button
               type="default"
               size="large"
-              href="http://159.89.163.222/dealers/stock-entry/list"
+              href="https://apib.dinasuvadu.in/dealers/stock-entry/list"
             >
               Stock List
             </Button>
@@ -340,13 +340,13 @@ const BillEntryList = () => {
               type="default"
               size="large"
               icon={<FileDoneOutlined />}
-              href="http://159.89.163.222/dealers/closing-entry/closingentry"
+              href="https://apib.dinasuvadu.in/dealers/closing-entry/closingentry"
             />
             {/* Closing Entry List Button */}
             <Button
               type="default"
               size="large"
-              href="http://159.89.163.222/dealers/closing-entry/list"
+              href="https://apib.dinasuvadu.in/dealers/closing-entry/list"
             >
               Closing Entry List
             </Button>
@@ -355,7 +355,7 @@ const BillEntryList = () => {
               type="default"
               size="large"
               icon={<DollarOutlined />}
-              href="http://159.89.163.222/dealers/expense/ExpenseEntry"
+              href="https://apib.dinasuvadu.in/dealers/expense/ExpenseEntry"
             >
               Expense Entry
             </Button>

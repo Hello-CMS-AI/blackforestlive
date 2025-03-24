@@ -12,7 +12,7 @@ const ProductList = () => {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://159.89.163.222/api/dealer/products', {
+      const response = await fetch('https://apib.dinasuvadu.in/api/dealer/products', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -36,7 +36,7 @@ const ProductList = () => {
   // Handle delete action with confirmation
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`http://159.89.163.222/api/dealer/products/${id}`, {
+      const response = await fetch(`https://apib.dinasuvadu.in/api/dealer/products/${id}`, {
         method: 'DELETE',
       });
 

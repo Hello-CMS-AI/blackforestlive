@@ -18,7 +18,7 @@ const CreateBillEntry = () => {
   useEffect(() => {
     const fetchDealers = async () => {
       try {
-        const response = await fetch('http://159.89.163.222/api/dealers', {
+        const response = await fetch('https://apib.dinasuvadu.in/api/dealers', {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         });
@@ -40,7 +40,7 @@ const CreateBillEntry = () => {
   useEffect(() => {
     const fetchBranches = async () => {
       try {
-        const response = await fetch('http://159.89.163.222/api/branches/public', { // Updated to public endpoint
+        const response = await fetch('https://apib.dinasuvadu.in/api/branches/public', { // Updated to public endpoint
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         });
@@ -93,7 +93,7 @@ const CreateBillEntry = () => {
     }
 
     try {
-      const response = await fetch('http://159.89.163.222/api/dealers/bills', {
+      const response = await fetch('https://apib.dinasuvadu.in/api/dealers/bills', {
         method: 'POST',
         body: formData,
       });
