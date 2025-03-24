@@ -325,13 +325,13 @@ const BillEntryList = () => {
               type="default"
               size="large"
               icon={<StockOutlined />}
-              href="https://blackforestlive.netlify.app/dealers/stock-entry/create"
+              href="http://localhost:3000/dealers/stock-entry/create"
             />
             {/* Stock List Button */}
             <Button
               type="default"
               size="large"
-              href="https://blackforestlive.netlify.app/dealers/stock-entry/list"
+              href="http://localhost:3000/dealers/stock-entry/list"
             >
               Stock List
             </Button>
@@ -340,13 +340,13 @@ const BillEntryList = () => {
               type="default"
               size="large"
               icon={<FileDoneOutlined />}
-              href="https://blackforestlive.netlify.app/dealers/closing-entry/closingentry"
+              href="http://localhost:3000/dealers/closing-entry/closingentry"
             />
             {/* Closing Entry List Button */}
             <Button
               type="default"
               size="large"
-              href="https://blackforestlive.netlify.app/dealers/closing-entry/list"
+              href="http://localhost:3000/dealers/closing-entry/list"
             >
               Closing Entry List
             </Button>
@@ -355,7 +355,7 @@ const BillEntryList = () => {
               type="default"
               size="large"
               icon={<DollarOutlined />}
-              href="https://blackforestlive.netlify.app/dealers/expense/ExpenseEntry"
+              href="http://localhost:3000/dealers/expense/ExpenseEntry"
             >
               Expense Entry
             </Button>

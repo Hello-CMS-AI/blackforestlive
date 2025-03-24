@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Input, Button, Space, Select, message, InputNumber, Tooltip, Card, Modal, Tag } from 'antd';
 import { SearchOutlined, PlusOutlined, MinusOutlined, WarningOutlined, HistoryOutlined, DownloadOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/router';
-import Papa from 'papaparse';
+import { CSVLink } from 'react-csv';
 
 const { Option } = Select;
 
@@ -343,22 +343,6 @@ const InventoryPage = () => {
     'Last Updated': new Date(product.updatedAt).toLocaleString(),
   }));
 
-  const downloadCSV = () => {
-    if (!csvData || csvData.length === 0) {
-      message.warning('No data available to download');
-      return;
-    }
-    const filename = `inventory_${new Date().toISOString().slice(0, 10)}.csv`;
-    const csv = Papa.unparse(csvData);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', filename);
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
   const columns = [
     { title: 'ID', dataIndex: 'productId', key: 'productId', width: 80 },
     { 
@@ -453,9 +437,9 @@ const InventoryPage = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
         <h2>Inventory ({filteredProducts.length} of {products.length})</h2>
         <Space>
-          <Button icon={<DownloadOutlined />} onClick={downloadCSV}>
-            Download Report
-          </Button>
+          <CSVLink data={csvData} filename={`inventory_${new Date().toISOString().slice(0, 10)}.csv`} target="_blank">
+            <Button icon={<DownloadOutlined />}>Download Report</Button>
+          </CSVLink>
         </Space>
       </div>
 
