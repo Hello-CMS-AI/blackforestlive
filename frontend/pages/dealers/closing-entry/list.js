@@ -56,7 +56,7 @@ const ClosingEntryList = () => {
 
   const fetchBranches = async () => {
     try {
-      const response = await fetch('https://apib.dinasuvadu.in/api/branches/public', {
+      const response = await fetch('http://localhost:5000/api/branches/public', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -72,7 +72,7 @@ const ClosingEntryList = () => {
   const fetchClosingEntries = async () => {
     setLoading(true);
     try {
-      const response = await fetch('https://apib.dinasuvadu.in/api/closing-entries', {
+      const response = await fetch('http://localhost:5000/api/closing-entries', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -281,13 +281,13 @@ const ClosingEntryList = () => {
               type="default"
               size="large"
               icon={<StockOutlined />}
-              href="http://159.89.163.222/dealers/stock-entry/create"
+              href="http://localhost:3000/dealers/stock-entry/create"
             />
             {/* Stock Text Button (List) */}
             <Button
               type="default"
               size="large"
-              href="http://159.89.163.222/dealers/stock-entry/list"
+              href="http://localhost:3000/dealers/stock-entry/list"
             >
               Stock List
             </Button>
@@ -296,13 +296,13 @@ const ClosingEntryList = () => {
               type="default"
               size="large"
               icon={<FileTextOutlined />}
-              href="http://159.89.163.222/dealers/bill-entry/create"
+              href="http://localhost:3000/dealers/bill-entry/create"
             />
             {/* Bill Entry Text Button (List) */}
             <Button
               type="default"
               size="large"
-              href="http://159.89.163.222/dealers/bill-entry/list"
+              href="http://localhost:3000/dealers/bill-entry/list"
             >
               Bill Entry List
             </Button>
@@ -311,7 +311,7 @@ const ClosingEntryList = () => {
               type="default"
               size="large"
               icon={<DollarOutlined />}
-              href="http://159.89.163.222/dealers/expense/ExpenseEntry"
+              href="http://localhost:3000/dealers/expense/ExpenseEntry"
             >
               Expense Entry
             </Button>
@@ -413,7 +413,7 @@ const ClosingEntryList = () => {
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
-                    href="http://159.89.163.222/dealers/closing-entry/closingentry"
+                    href="http://localhost:3000/dealers/closing-entry/closingentry"
                   >
                     Create Closing Bill
                   </Button>

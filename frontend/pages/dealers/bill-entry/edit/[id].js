@@ -30,7 +30,7 @@ const EditBillEntry = () => {
   const fetchBillData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`https://apib.dinasuvadu.in/api/dealers/bills/${id}`, {
+      const response = await fetch(`http://localhost:5000/api/dealers/bills/${id}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -38,7 +38,7 @@ const EditBillEntry = () => {
       if (response.ok) {
         setBillData(result);
         const initialFileList = result.billImage
-          ? [{ uid: '-1', name: 'Current Image', status: 'done', url: `https://apib.dinasuvadu.in/${result.billImage}` }]
+          ? [{ uid: '-1', name: 'Current Image', status: 'done', url: `http://localhost:5000/${result.billImage}` }]
           : [];
         setFileList(initialFileList);
         form.setFieldsValue({
@@ -62,7 +62,7 @@ const EditBillEntry = () => {
 
   const fetchDealers = async () => {
     try {
-      const response = await fetch('https://apib.dinasuvadu.in/api/dealers', {
+      const response = await fetch('http://localhost:5000/api/dealers', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -80,7 +80,7 @@ const EditBillEntry = () => {
 
   const fetchBranches = async () => {
     try {
-      const response = await fetch('https://apib.dinasuvadu.in/api/branches/public', {
+      const response = await fetch('http://localhost:5000/api/branches/public', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -122,7 +122,7 @@ const EditBillEntry = () => {
     }
 
     try {
-      const response = await fetch(`https://apib.dinasuvadu.in/api/dealers/bills/${id}`, {
+      const response = await fetch(`http://localhost:5000/api/dealers/bills/${id}`, {
         method: 'PUT',
         body: formData,
       });
