@@ -325,13 +325,13 @@ const BillEntryList = () => {
               type="default"
               size="large"
               icon={<StockOutlined />}
-              href="https://apib.dinasuvadu.in/dealers/stock-entry/create"
+              href="/dealers/stock-entry/create"
             />
             {/* Stock List Button */}
             <Button
               type="default"
               size="large"
-              href="https://apib.dinasuvadu.in/dealers/stock-entry/list"
+              href="/dealers/stock-entry/list"
             >
               Stock List
             </Button>
@@ -340,13 +340,13 @@ const BillEntryList = () => {
               type="default"
               size="large"
               icon={<FileDoneOutlined />}
-              href="https://apib.dinasuvadu.in/dealers/closing-entry/closingentry"
+              href="/dealers/closing-entry/closingentry"
             />
             {/* Closing Entry List Button */}
             <Button
               type="default"
               size="large"
-              href="https://apib.dinasuvadu.in/dealers/closing-entry/list"
+              href="/dealers/closing-entry/list"
             >
               Closing Entry List
             </Button>
@@ -355,7 +355,7 @@ const BillEntryList = () => {
               type="default"
               size="large"
               icon={<DollarOutlined />}
-              href="https://apib.dinasuvadu.in/dealers/expense/ExpenseEntry"
+              href="/dealers/expense/ExpenseEntry"
             >
               Expense Entry
             </Button>
