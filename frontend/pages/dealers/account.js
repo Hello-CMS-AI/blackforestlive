@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Space, Typography, Row, Col, Button, Dropdown, Menu } from 'antd';
-import { StockOutlined, FileTextOutlined, FileDoneOutlined, DollarOutlined, DownOutlined, BankOutlined } from '@ant-design/icons';
+import { StockOutlined, FileTextOutlined, FileDoneOutlined, DollarOutlined, DownOutlined, BankOutlined, UserOutlined, ShoppingOutlined, TagsOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
 
@@ -9,10 +9,10 @@ const CategoryDashboard = () => {
   const stockMenu = (
     <Menu>
       <Menu.Item key="create">
-        <a href="https://blackforestlive.netlify.app/dealers/stock-entry/create">Create</a>
+        <a href="http://localhost:3000/dealers/stock-entry/create">Create</a>
       </Menu.Item>
       <Menu.Item key="list">
-        <a href="https://blackforestlive.netlify.app/dealers/stock-entry/list">List</a>
+        <a href="http://localhost:3000/dealers/stock-entry/list">List</a>
       </Menu.Item>
     </Menu>
   );
@@ -21,10 +21,10 @@ const CategoryDashboard = () => {
   const billMenu = (
     <Menu>
       <Menu.Item key="create">
-        <a href="https://blackforestlive.netlify.app/dealers/bill-entry/create">Create</a>
+        <a href="http://localhost:3000/dealers/bill-entry/create">Create</a>
       </Menu.Item>
       <Menu.Item key="list">
-        <a href="https://blackforestlive.netlify.app/dealers/bill-entry/list">List</a>
+        <a href="http://localhost:3000/dealers/bill-entry/list">List</a>
       </Menu.Item>
     </Menu>
   );
@@ -33,10 +33,46 @@ const CategoryDashboard = () => {
   const closingMenu = (
     <Menu>
       <Menu.Item key="create">
-        <a href="https://blackforestlive.netlify.app/dealers/closing-entry/closingentry">Create</a>
+        <a href="http://localhost:3000/dealers/closing-entry/closingentry">Create</a>
       </Menu.Item>
       <Menu.Item key="list">
-        <a href="https://blackforestlive.netlify.app/dealers/closing-entry/list">List</a>
+        <a href="http://localhost:3000/dealers/closing-entry/list">List</a>
+      </Menu.Item>
+    </Menu>
+  );
+
+  // Dropdown menu for Dealers
+  const dealersMenu = (
+    <Menu>
+      <Menu.Item key="create">
+        <a href="http://localhost:3000/dealers/create">Create</a>
+      </Menu.Item>
+      <Menu.Item key="list">
+        <a href="http://localhost:3000/dealers/list">List</a>
+      </Menu.Item>
+    </Menu>
+  );
+
+  // Dropdown menu for Products
+  const productsMenu = (
+    <Menu>
+      <Menu.Item key="create">
+        <a href="http://localhost:3000/dealers/product/create">Create</a>
+      </Menu.Item>
+      <Menu.Item key="list">
+        <a href="http://localhost:3000/dealers/product/list">List</a>
+      </Menu.Item>
+    </Menu>
+  );
+
+  // Dropdown menu for Category
+  const categoryMenu = (
+    <Menu>
+      <Menu.Item key="create">
+        <a href="http://localhost:3000/dealers/category/create">Create</a>
+      </Menu.Item>
+      <Menu.Item key="list">
+        <a href="http://localhost:3000/dealers/category/list">List</a>
       </Menu.Item>
     </Menu>
   );
@@ -45,7 +81,7 @@ const CategoryDashboard = () => {
     <div
       style={{
         padding: '40px 20px',
-        background: 'linear-gradient(to bottom, #f0f2f5, #e6e9f0)', // Gradient background
+        background: 'linear-gradient(to bottom, #f0f2f5, #e6e9f0)',
         minHeight: '100vh',
         display: 'flex',
         justifyContent: 'center',
@@ -175,7 +211,7 @@ const CategoryDashboard = () => {
                 type="default"
                 size="large"
                 icon={<DollarOutlined />}
-                href="https://blackforestlive.netlify.app/dealers/expense/ExpenseEntry"
+                href="http://localhost:3000/dealers/expense/ExpenseEntry"
                 style={{ width: '150px' }}
               >
                 Expense Entry
@@ -186,7 +222,6 @@ const CategoryDashboard = () => {
 
         {/* Second Row for Financial Management */}
         <Row gutter={[24, 24]} justify="center" style={{ marginTop: '24px' }}>
-          {/* Financial Management Card */}
           <Col xs={24} sm={12} md={6}>
             <Card
               title="Financial Management"
@@ -206,11 +241,113 @@ const CategoryDashboard = () => {
                 type="default"
                 size="large"
                 icon={<BankOutlined />}
-                href="https://blackforestlive.netlify.app/FinancialManagement"
+                href="http://localhost:3000/FinancialManagement"
                 style={{ width: '150px' }}
               >
                 Finance
               </Button>
+            </Card>
+          </Col>
+        </Row>
+
+        {/* Third Row for Creation Section */}
+        <Title
+          level={3}
+          style={{
+            marginTop: '40px',
+            marginBottom: '24px',
+            color: '#1a3042',
+            fontWeight: 'bold',
+            textAlign: 'center',
+          }}
+        >
+          Creation
+        </Title>
+        <Row gutter={[24, 24]} justify="center">
+          {/* Dealers Card */}
+          <Col xs={24} sm={12} md={6}>
+            <Card
+              title="Dealers"
+              headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
+              style={{
+                borderRadius: '12px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                textAlign: 'center',
+                height: '200px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+              bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Dropdown overlay={dealersMenu} trigger={['click']}>
+                <Button
+                  type="default"
+                  size="large"
+                  icon={<UserOutlined />}
+                  style={{ width: '150px' }}
+                >
+                  Actions <DownOutlined />
+                </Button>
+              </Dropdown>
+            </Card>
+          </Col>
+
+          {/* Products Card */}
+          <Col xs={24} sm={12} md={6}>
+            <Card
+              title="Products"
+              headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
+              style={{
+                borderRadius: '12px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                textAlign: 'center',
+                height: '200px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+              bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Dropdown overlay={productsMenu} trigger={['click']}>
+                <Button
+                  type="default"
+                  size="large"
+                  icon={<ShoppingOutlined />}
+                  style={{ width: '150px' }}
+                >
+                  Actions <DownOutlined />
+                </Button>
+              </Dropdown>
+            </Card>
+          </Col>
+
+          {/* Category Card */}
+          <Col xs={24} sm={12} md={6}>
+            <Card
+              title="Category"
+              headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
+              style={{
+                borderRadius: '12px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                textAlign: 'center',
+                height: '200px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+              bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Dropdown overlay={categoryMenu} trigger={['click']}>
+                <Button
+                  type="default"
+                  size="large"
+                  icon={<TagsOutlined />}
+                  style={{ width: '150px' }}
+                >
+                  Actions <DownOutlined />
+                </Button>
+              </Dropdown>
             </Card>
           </Col>
         </Row>
