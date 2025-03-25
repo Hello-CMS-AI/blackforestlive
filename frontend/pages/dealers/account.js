@@ -9,10 +9,10 @@ const CategoryDashboard = () => {
   const stockMenu = (
     <Menu>
       <Menu.Item key="create">
-        <a href="http://localhost:3000/dealers/stock-entry/create">Create</a>
+        <a href="/dealers/stock-entry/create">Create</a>
       </Menu.Item>
       <Menu.Item key="list">
-        <a href="http://localhost:3000/dealers/stock-entry/list">List</a>
+        <a href="/dealers/stock-entry/list">List</a>
       </Menu.Item>
     </Menu>
   );
@@ -21,10 +21,10 @@ const CategoryDashboard = () => {
   const billMenu = (
     <Menu>
       <Menu.Item key="create">
-        <a href="http://localhost:3000/dealers/bill-entry/create">Create</a>
+        <a href="/dealers/bill-entry/create">Create</a>
       </Menu.Item>
       <Menu.Item key="list">
-        <a href="http://localhost:3000/dealers/bill-entry/list">List</a>
+        <a href="/dealers/bill-entry/list">List</a>
       </Menu.Item>
     </Menu>
   );
@@ -33,10 +33,10 @@ const CategoryDashboard = () => {
   const closingMenu = (
     <Menu>
       <Menu.Item key="create">
-        <a href="http://localhost:3000/dealers/closing-entry/closingentry">Create</a>
+        <a href="/dealers/closing-entry/closingentry">Create</a>
       </Menu.Item>
       <Menu.Item key="list">
-        <a href="http://localhost:3000/dealers/closing-entry/list">List</a>
+        <a href="/dealers/closing-entry/list">List</a>
       </Menu.Item>
     </Menu>
   );
@@ -45,10 +45,10 @@ const CategoryDashboard = () => {
   const dealersMenu = (
     <Menu>
       <Menu.Item key="create">
-        <a href="http://localhost:3000/dealers/create">Create</a>
+        <a href="/dealers/create">Create</a>
       </Menu.Item>
       <Menu.Item key="list">
-        <a href="http://localhost:3000/dealers/list">List</a>
+        <a href="/dealers/list">List</a>
       </Menu.Item>
     </Menu>
   );
@@ -57,10 +57,10 @@ const CategoryDashboard = () => {
   const productsMenu = (
     <Menu>
       <Menu.Item key="create">
-        <a href="http://localhost:3000/dealers/product/create">Create</a>
+        <a href="/dealers/product/create">Create</a>
       </Menu.Item>
       <Menu.Item key="list">
-        <a href="http://localhost:3000/dealers/product/list">List</a>
+        <a href="/dealers/product/list">List</a>
       </Menu.Item>
     </Menu>
   );
@@ -69,10 +69,10 @@ const CategoryDashboard = () => {
   const categoryMenu = (
     <Menu>
       <Menu.Item key="create">
-        <a href="http://localhost:3000/dealers/category/create">Create</a>
+        <a href="/dealers/category/create">Create</a>
       </Menu.Item>
       <Menu.Item key="list">
-        <a href="http://localhost:3000/dealers/category/list">List</a>
+        <a href="/dealers/category/list">List</a>
       </Menu.Item>
     </Menu>
   );
@@ -211,7 +211,7 @@ const CategoryDashboard = () => {
                 type="default"
                 size="large"
                 icon={<DollarOutlined />}
-                href="http://localhost:3000/dealers/expense/ExpenseEntry"
+                href="/dealers/expense/ExpenseEntry"
                 style={{ width: '150px' }}
               >
                 Expense Entry
@@ -241,7 +241,7 @@ const CategoryDashboard = () => {
                 type="default"
                 size="large"
                 icon={<BankOutlined />}
-                href="http://localhost:3000/FinancialManagement"
+                href="/FinancialManagement"
                 style={{ width: '150px' }}
               >
                 Finance
