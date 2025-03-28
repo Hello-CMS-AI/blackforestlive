@@ -93,7 +93,7 @@ const BranchListPage = () => {
   return (
     <div style={{ padding: '20px', background: '#fff', borderRadius: '8px', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
       <h2>Branch List</h2>
-      <Button type="primary" style={{ marginBottom: '20px' }} onClick={() => router.push('/branches/add')}>
+      <Button type="primary" style={{ marginBottom: '20px' }} onClick={() => router.push('/branch/add')}>
         Add Branch
       </Button>
       <Table
