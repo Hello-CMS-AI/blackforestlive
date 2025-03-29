@@ -542,7 +542,8 @@ const BillingPage = ({ branchId }) => {
   };
 
   const printReceipt = (order, todayAssignment, summary) => {
-    const { totalQty, subtotal, sgst, cgst, totalWithGSTRounded } = summary;
+    const { totalQty, subtotal, totalWithGSTRounded } = summary;
+    const { sgst, cgst } = summary; // Keep these for conditional rendering of values
     const printWindow = window.open('', '_blank');
     const dateTime = new Date().toLocaleString('en-IN', {
       day: '2-digit',
@@ -558,35 +559,49 @@ const BillingPage = ({ branchId }) => {
         <head>
           <title>Receipt</title>
           <style>
-            body { font-family: 'Courier New', Courier, monospace; width: 302px; margin: 0; padding: 5px; font-size: 10px; line-height: 1.2; }
-            h2 { text-align: center; font-size: 14px; font-weight: bold; margin: 0 0 5px 0; }
-            .header { display: flex; justify-content: space-between; margin-bottom: 5px; width: 100%; }
-            .header-left { text-align: left; max-width: 50%; overflow: hidden; text-overflow: ellipsis; }
-            .header-right { text-align: right; max-width: 50%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            p { margin: 2px 0; overflow: hidden; text-overflow: ellipsis; }
-            table { width: 100%; border-collapse: collapse; margin-top: 5px; }
-            th, td { padding: 2px; text-align: left; font-size: 10px; }
-            th { font-weight: bold; }
+            body { font-family: 'Courier New', Courier, monospace; width: 302px; margin: 0; padding: 5px; font-size: 10px; line-height: 1.2; color: #000; }
+            h2 { text-align: center; font-size: 14px; font-weight: bold; margin: 0 0 5px 0; color: #000; }
+            .header { display: flex; justify-content: space-between; margin-bottom: 5px; width: 100%; color: #000; }
+            .header-left { text-align: left; max-width: 50%; overflow: hidden; text-overflow: ellipsis; color: #000; }
+            .header-right { text-align: right; max-width: 50%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #000; }
+            p { margin: 2px 0; overflow: hidden; text-overflow: ellipsis; color: #000; }
+            table { width: 100%; border-collapse: collapse; margin-top: 5px; color: #000; }
+            th, td { padding: 2px; text-align: left; font-size: 10px; color: #000; }
+            th { font-weight: bold; color: #000; }
             .divider { border-top: 1px dashed #000; margin: 5px 0; }
-            .summary { margin-top: 5px; }
+            .summary { margin-top: 5px; color: #000; }
             .summary div {
               display: flex;
-              justify-content: flex-end; /* Align items to the right */
+              justify-content: flex-end;
               white-space: nowrap;
+              color: #000;
+            }
+            .summary div span {
+              color: #000;
             }
             .summary div span:first-child {
-              margin-right: 5px; /* Add a little space between label and value */
+              margin-right: 5px;
             }
             .grand-total {
               font-weight: bold;
-              font-size: 1.1em; /* Make Grand Total text a bit bigger */
+              font-size: 1.1em;
+              color: #000;
+            }
+            .grand-total span {
+              color: #000;
             }
             .grand-total span:last-child {
-              font-size: 1.1em; /* Make Grand Total price a bit bigger */
+              font-size: 1.1em;
             }
             .thank-you {
               text-align: center;
               margin-top: 5px;
+              color: #000;
+            }
+            .before-grand-total {
+              border-bottom: 1px dashed #000;
+              padding-bottom: 5px;
+              margin-bottom: 5px;
             }
             @media print { @page { margin: 0; size: 80mm auto; } body { margin: 0; padding: 5px; } }
           </style>
@@ -633,8 +648,9 @@ const BillingPage = ({ branchId }) => {
             <div><span>Total Qty: ${totalQty.toFixed(2)}</span><span>Total Amount: ₹${subtotal.toFixed(2)}</span></div>
             ${totalGST > 0 ? `
               <div style="display: flex; justify-content: flex-end;"><span>SGST:</span><span>₹${sgst.toFixed(2)}</span></div>
-              <div style="display: flex; justify-content: flex-end; border-bottom: 1px dashed #000; padding-bottom: 5px; margin-bottom: 5px;"><span>CGST:</span><span>₹${cgst.toFixed(2)}</span></div>
+              <div style="display: flex; justify-content: flex-end;"><span>CGST:</span><span>₹${cgst.toFixed(2)}</span></div>
             ` : ""}
+            <div class="before-grand-total"></div>
             <div class="grand-total" style="display: flex; justify-content: flex-end;"><span>Grand Total:</span><span>₹${totalWithGSTRounded.toFixed(2)}</span></div>
           </div>
           <div class="divider"></div>
