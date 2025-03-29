@@ -18,10 +18,25 @@ const orderSchema = new mongoose.Schema({
       sendingQty: { type: Number, default: 0 },
       price: { type: Number, required: true },
       unit: { type: String, required: true },
-      gstRate: { type: Number, required: true },
+      gstRate: { 
+        type: mongoose.Schema.Types.Mixed, // Allows Number (e.g., 5, 12) or String ("non-gst")
+        required: true,
+        validate: {
+          validator: function(v) {
+            return (typeof v === 'number' && v >= 0) || v === 'non-gst';
+          },
+          message: 'gstRate must be a non-negative number or "non-gst"',
+        },
+      },
       productTotal: { type: Number, required: true },
-      productGST: { type: Number, required: true },
-      bminstock: { type: Number, default: 0 }, // Optional, clarify purpose if kept
+      productGST: { 
+        type: Number, 
+        required: true,
+        default: function() {
+          return this.gstRate === 'non-gst' ? 0 : null; // 0 for Non-GST, calculated otherwise
+        },
+      },
+      bminstock: { type: Number, default: 0 },
       confirmed: { type: Boolean, default: false },
     },
   ],

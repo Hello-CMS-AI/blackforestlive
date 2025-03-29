@@ -46,12 +46,20 @@ const createOrder = async (req, res) => {
         !product.quantity ||
         !product.price ||
         !product.unit ||
-        product.gstRate === undefined ||
+        product.gstRate === undefined || // Allow "non-gst" or number
         !product.productTotal ||
-        !product.productGST ||
+        product.productGST === undefined ||
         product.bminstock === undefined
       ) {
         return res.status(400).json({ message: 'Invalid product data' });
+      }
+      // Validate gstRate
+      if (!(typeof product.gstRate === 'number' && product.gstRate >= 0) && product.gstRate !== 'non-gst') {
+        return res.status(400).json({ message: 'gstRate must be a non-negative number or "non-gst"' });
+      }
+      // Ensure productGST is 0 for non-gst items
+      if (product.gstRate === 'non-gst' && product.productGST !== 0) {
+        return res.status(400).json({ message: 'Non-GST items must have productGST set to 0' });
       }
       product.sendingQty = product.sendingQty !== undefined ? product.sendingQty : 0;
       product.confirmed = product.confirmed !== undefined ? product.confirmed : false;
@@ -203,11 +211,17 @@ const updateSendingQty = async (req, res) => {
         return res.status(400).json({ message: 'Products must be an array' });
       }
 
-      const updatedProducts = order.products.map((existingProduct, index) => ({
-        ...existingProduct.toObject(),
-        sendingQty: products[index]?.sendingQty !== undefined ? products[index].sendingQty : existingProduct.sendingQty || 0,
-        confirmed: products[index]?.confirmed !== undefined ? products[index].confirmed : existingProduct.confirmed || false,
-      }));
+      const updatedProducts = order.products.map((existingProduct, index) => {
+        const newProduct = products[index] || {};
+        return {
+          ...existingProduct.toObject(),
+          sendingQty: newProduct.sendingQty !== undefined ? newProduct.sendingQty : existingProduct.sendingQty || 0,
+          confirmed: newProduct.confirmed !== undefined ? newProduct.confirmed : existingProduct.confirmed || false,
+          // Preserve gstRate and productGST integrity
+          gstRate: newProduct.gstRate !== undefined ? newProduct.gstRate : existingProduct.gstRate,
+          productGST: newProduct.gstRate === 'non-gst' ? 0 : (newProduct.productGST !== undefined ? newProduct.productGST : existingProduct.productGST),
+        };
+      });
       order.products = updatedProducts;
     }
 
@@ -224,11 +238,9 @@ const updateSendingQty = async (req, res) => {
         return res.status(400).json({ message: 'Order must be delivered before marking as received' });
       }
 
-      // Handle stock and live orders when status is "delivered"
       if (status === 'delivered' && (order.tab === 'stock' || order.tab === 'liveOrder')) {
         for (const product of order.products) {
           if (product.sendingQty > 0) {
-            // Factory stock reduction
             let factoryInventory = await Inventory.findOne({ productId: product.productId, locationId: null });
             if (!factoryInventory) {
               return res.status(400).json({ message: `No factory stock found for product ${product.name}` });
@@ -244,14 +256,13 @@ const updateSendingQty = async (req, res) => {
             });
             await factoryInventory.save();
 
-            // Branch stock increase
             let branchInventory = await Inventory.findOne({ productId: product.productId, locationId: order.branchId });
             if (!branchInventory) {
               branchInventory = new Inventory({
                 productId: product.productId,
                 locationId: order.branchId,
                 inStock: 0,
-                lowStockThreshold: 5, // Default threshold
+                lowStockThreshold: 5,
               });
             }
             branchInventory.inStock += product.sendingQty;

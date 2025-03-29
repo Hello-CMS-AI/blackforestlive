@@ -264,14 +264,15 @@ const BillingPage = ({ branchId }) => {
     const currentCount = selectedProducts
       .filter(item => item._id === product._id)
       .reduce((sum, item) => sum + item.count, 0);
-
+  
     if (currentCount >= availableStock) {
       message.warning(`${product.name} is out of stock at this branch! (Stock: ${availableStock})`);
       return;
     }
-
+  
     setSelectedProducts(prev => {
       const existingProduct = prev.find(item => item._id === product._id && item.selectedUnitIndex === selectedUnitIndex);
+      const gstRate = product.priceDetails?.[selectedUnitIndex]?.gst || "non-gst"; // Default to "non-gst" if undefined
       if (existingProduct) {
         return prev.map(item =>
           item._id === product._id && item.selectedUnitIndex === selectedUnitIndex
@@ -279,7 +280,13 @@ const BillingPage = ({ branchId }) => {
             : item
         );
       } else {
-        return [...prev, { ...product, selectedUnitIndex, count: 1, bminstock: 0 }];
+        return [...prev, { 
+          ...product, 
+          selectedUnitIndex, 
+          count: 1, 
+          bminstock: 0,
+          gstRate // Add gstRate explicitly to preserve it
+        }];
       }
     });
   };
@@ -380,17 +387,20 @@ const BillingPage = ({ branchId }) => {
     const orderData = {
       branchId,
       tab: 'billing',
-      products: selectedProducts.map(product => ({
-        productId: product._id,
-        name: product.name,
-        quantity: product.count,
-        price: product.priceDetails?.[product.selectedUnitIndex]?.price || 0,
-        unit: product.priceDetails?.[product.selectedUnitIndex]?.unit || '',
-        gstRate: product.priceDetails?.[product.selectedUnitIndex]?.gst || 0,
-        productTotal: calculateProductTotal(product),
-        productGST: calculateProductGST(product),
-        bminstock: product.bminstock || 0,
-      })),
+      products: selectedProducts.map(product => {
+        const gstRate = product.priceDetails?.[product.selectedUnitIndex]?.gst || "non-gst";
+        return {
+          productId: product._id,
+          name: product.name,
+          quantity: product.count,
+          price: product.priceDetails?.[product.selectedUnitIndex]?.price || 0,
+          unit: product.priceDetails?.[product.selectedUnitIndex]?.unit || '',
+          gstRate: gstRate, // Use "non-gst" instead of 0
+          productTotal: calculateProductTotal(product),
+          productGST: gstRate === "non-gst" ? 0 : calculateProductGST(product), // Force 0 for non-gst
+          bminstock: product.bminstock || 0,
+        };
+      }),
       paymentMethod,
       subtotal,
       totalGST,
@@ -444,17 +454,20 @@ const BillingPage = ({ branchId }) => {
     const orderData = {
       branchId,
       tab: 'billing',
-      products: selectedProducts.map(product => ({
-        productId: product._id,
-        name: product.name,
-        quantity: product.count,
-        price: product.priceDetails?.[product.selectedUnitIndex]?.price || 0,
-        unit: product.priceDetails?.[product.selectedUnitIndex]?.unit || '',
-        gstRate: product.priceDetails?.[product.selectedUnitIndex]?.gst || 0,
-        productTotal: calculateProductTotal(product),
-        productGST: calculateProductGST(product),
-        bminstock: product.bminstock || 0,
-      })),
+      products: selectedProducts.map(product => {
+        const gstRate = product.priceDetails?.[product.selectedUnitIndex]?.gst || "non-gst";
+        return {
+          productId: product._id,
+          name: product.name,
+          quantity: product.count,
+          price: product.priceDetails?.[product.selectedUnitIndex]?.price || 0,
+          unit: product.priceDetails?.[product.selectedUnitIndex]?.unit || '',
+          gstRate: gstRate, // Use "non-gst" instead of 0
+          productTotal: calculateProductTotal(product),
+          productGST: gstRate === "non-gst" ? 0 : calculateProductGST(product), // Force 0 for non-gst
+          bminstock: product.bminstock || 0,
+        };
+      }),
       paymentMethod,
       subtotal,
       totalGST,
@@ -529,15 +542,15 @@ const BillingPage = ({ branchId }) => {
   };
 
   const printReceipt = (order, todayAssignment, summary) => {
-    const { totalQty, totalItems, subtotal, sgst, cgst, totalWithGST, totalWithGSTRounded, roundOff, paymentMethod, tenderAmount, balance } = summary;
+    const { totalQty, subtotal, sgst, cgst, totalWithGSTRounded } = summary;
     const printWindow = window.open('', '_blank');
-    const dateTime = new Date().toLocaleString('en-IN', { 
-      day: '2-digit', 
-      month: '2-digit', 
-      year: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit', 
-      hour12: true 
+    const dateTime = new Date().toLocaleString('en-IN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
     }).replace(',', '');
 
     printWindow.document.write(`
@@ -556,8 +569,25 @@ const BillingPage = ({ branchId }) => {
             th { font-weight: bold; }
             .divider { border-top: 1px dashed #000; margin: 5px 0; }
             .summary { margin-top: 5px; }
-            .summary div { display: flex; justify-content: space-between; }
-            .payment-details { margin-top: 5px; }
+            .summary div {
+              display: flex;
+              justify-content: flex-end; /* Align items to the right */
+              white-space: nowrap;
+            }
+            .summary div span:first-child {
+              margin-right: 5px; /* Add a little space between label and value */
+            }
+            .grand-total {
+              font-weight: bold;
+              font-size: 1.1em; /* Make Grand Total text a bit bigger */
+            }
+            .grand-total span:last-child {
+              font-size: 1.1em; /* Make Grand Total price a bit bigger */
+            }
+            .thank-you {
+              text-align: center;
+              margin-top: 5px;
+            }
             @media print { @page { margin: 0; size: 80mm auto; } body { margin: 0; padding: 5px; } }
           </style>
         </head>
@@ -579,22 +609,20 @@ const BillingPage = ({ branchId }) => {
           <table>
             <thead>
               <tr>
-                <th style="width: 10%;">SL</th>
-                <th style="width: 40%;">Description</th>
-                <th style="width: 15%;">MRP</th>
+                <th style="width: 50%;">Item</th>
                 <th style="width: 15%;">Qty</th>
+                <th style="width: 15%;">Price</th>
                 <th style="width: 20%;">Amount</th>
               </tr>
             </thead>
             <tbody>
-              ${order.products.map((product, index) => `
+              ${order.products.map((product) => `
                 <tr>
-                  <td>${index + 1}</td>
                   <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    ${product.name} (${product.quantity}${product.unit}${product.cakeType ? `, ${product.cakeType === 'freshCream' ? 'FC' : 'BC'}` : ''})
+                    ${product.name}${product.gstRate === "non-gst" ? " (Non-GST)" : ""} (${product.quantity}${product.unit}${product.cakeType ? `, ${product.cakeType === 'freshCream' ? 'FC' : 'BC'}` : ''})
                   </td>
-                  <td>₹${product.price.toFixed(2)}</td>
                   <td>${product.quantity}</td>
+                  <td>₹${product.price.toFixed(2)}</td>
                   <td>₹${product.productTotal.toFixed(2)}</td>
                 </tr>
               `).join('')}
@@ -602,20 +630,15 @@ const BillingPage = ({ branchId }) => {
           </table>
           <div class="divider"></div>
           <div class="summary">
-            <div><span>Tot Qty:</span><span>${totalQty.toFixed(2)}</span></div>
-            <div><span>Tot Items:</span><span>${totalItems}</span></div>
-            <div><span>Total Amount:</span><span>₹${subtotal.toFixed(2)}</span></div>
-            <div><span>SGST:</span><span>₹${sgst.toFixed(2)}</span></div>
-            <div><span>CGST:</span><span>₹${cgst.toFixed(2)}</span></div>
-            <div><span>Round Off:</span><span>${roundOff >= 0 ? '+' : ''}${roundOff.toFixed(2)}</span></div>
-            <div><span>Net Amt:</span><span>₹${totalWithGSTRounded.toFixed(2)}</span></div>
+            <div><span>Total Qty: ${totalQty.toFixed(2)}</span><span>Total Amount: ₹${subtotal.toFixed(2)}</span></div>
+            ${totalGST > 0 ? `
+              <div style="display: flex; justify-content: flex-end;"><span>SGST:</span><span>₹${sgst.toFixed(2)}</span></div>
+              <div style="display: flex; justify-content: flex-end; border-bottom: 1px dashed #000; padding-bottom: 5px; margin-bottom: 5px;"><span>CGST:</span><span>₹${cgst.toFixed(2)}</span></div>
+            ` : ""}
+            <div class="grand-total" style="display: flex; justify-content: flex-end;"><span>Grand Total:</span><span>₹${totalWithGSTRounded.toFixed(2)}</span></div>
           </div>
-          <div class="payment-details">
-            <p>Payment Details:</p>
-            <p>${paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1)} - ₹${totalWithGSTRounded.toFixed(2)}</p>
-            <p>Tender: ₹${tenderAmount.toFixed(2)}</p>
-            <p>Balance: ₹${balance.toFixed(2)}</p>
-          </div>
+          <div class="divider"></div>
+          <p class="thank-you">Thank You !! Visit Again</p>
         </body>
       </html>
     `);
@@ -682,7 +705,8 @@ const BillingPage = ({ branchId }) => {
   const calculateProductGST = (product) => {
     const productTotal = calculateProductTotal(product);
     const selectedUnitIndex = product.selectedUnitIndex || 0;
-    const gstRate = product.priceDetails?.[product.selectedUnitIndex]?.gst || 0;
+    const gstRate = product.priceDetails?.[selectedUnitIndex]?.gst || "non-gst";
+    if (gstRate === "non-gst" || typeof gstRate !== 'number') return 0; // No GST for non-gst items
     return productTotal * (gstRate / 100);
   };
 
@@ -1052,41 +1076,51 @@ const BillingPage = ({ branchId }) => {
             {selectedProducts.length > 0 ? (
               <>
                 <ul style={{ listStyleType: 'none', padding: 0 }}>
-                  {selectedProducts.map(product => (
-                    <li key={`${product._id}-${product.selectedUnitIndex}`} style={{ marginBottom: '30px', fontSize: '14px', display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ flex: 1 }}>{formatDisplayName(product)}</span>
-                        <span style={{ flex: 1, textAlign: 'right' }}>{formatPriceDetails(product.priceDetails, product.selectedUnitIndex)} x {product.count}</span>
-                        <Button
-                          type="text"
-                          icon={<CloseOutlined />}
-                          onClick={() => handleRemoveProduct(product._id, product.selectedUnitIndex)}
-                          style={{ color: '#ff4d4f', fontSize: '14px', marginLeft: '10px' }}
-                        />
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingBottom: '5px', borderBottom: '1px dotted #d9d9d9' }}>
-                        <Space size="middle">
-                          <Button
-                            type="default"
-                            icon={<MinusOutlined />}
-                            onClick={() => handleDecreaseCount(product._id, product.selectedUnitIndex)}
-                            size="small"
-                            style={{ backgroundColor: '#ff4d4f', color: '#ffffff' }}
-                          />
-                          <span>{product.count}</span>
-                          <Button
-                            type="default"
-                            icon={<PlusOutlined />}
-                            onClick={() => handleIncreaseCount(product._id, product.selectedUnitIndex)}
-                            size="small"
-                            style={{ backgroundColor: '#95BF47', color: '#ffffff' }}
-                          />
-                        </Space>
-                        <span style={{ fontWeight: 'bold' }}>₹{calculateProductTotal(product)}</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+  {selectedProducts.map(product => {
+    const gstRate = product.priceDetails?.[product.selectedUnitIndex]?.gst || "non-gst";
+    return (
+      <li key={`${product._id}-${product.selectedUnitIndex}`} style={{ marginBottom: '30px', fontSize: '14px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ flex: 1 }}>
+            {formatDisplayName(product)}{gstRate === "non-gst" ? " (Non-GST)" : ""}
+          </span>
+          <span style={{ flex: 1, textAlign: 'right' }}>
+            {formatPriceDetails(product.priceDetails, product.selectedUnitIndex)} x {product.count}
+          </span>
+          <Button
+            type="text"
+            icon={<CloseOutlined />}
+            onClick={() => handleRemoveProduct(product._id, product.selectedUnitIndex)}
+            style={{ color: '#ff4d4f', fontSize: '14px', marginLeft: '10px' }}
+          />
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingBottom: '5px', borderBottom: '1px dotted #d9d9d9' }}>
+          <Space size="middle">
+            <Button
+              type="default"
+              icon={<MinusOutlined />}
+              onClick={() => handleDecreaseCount(product._id, product.selectedUnitIndex)}
+              size="small"
+              style={{ backgroundColor: '#ff4d4f', color: '#ffffff' }}
+            />
+            <span>{product.count}</span>
+            <Button
+              type="default"
+              icon={<PlusOutlined />}
+              onClick={() => handleIncreaseCount(product._id, product.selectedUnitIndex)}
+              size="small"
+              style={{ backgroundColor: '#95BF47', color: '#ffffff' }}
+            />
+          </Space>
+          <span style={{ fontWeight: 'bold' }}>
+            ₹{calculateProductTotal(product)}
+            {gstRate !== "non-gst" && ` + ₹${calculateProductGST(product).toFixed(2)} GST`}
+          </span>
+        </div>
+      </li>
+    );
+  })}
+</ul>
                 <div style={{ marginTop: '20px', borderTop: '1px solid #d9d9d9', paddingTop: '10px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '14px', marginBottom: '5px' }}>
                     <span>Total (Excl. GST)</span>
