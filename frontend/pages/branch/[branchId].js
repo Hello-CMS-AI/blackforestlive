@@ -37,7 +37,7 @@ const BillingPage = ({ branchId }) => {
   const [branchInventory, setBranchInventory] = useState([]);
 
   const contentRef = useRef(null);
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://apib.dinasuvadu.in/';
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
