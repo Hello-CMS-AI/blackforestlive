@@ -37,7 +37,7 @@ const BillingPage = ({ branchId }) => {
   const [branchInventory, setBranchInventory] = useState([]);
 
   const contentRef = useRef(null);
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://apib.dinasuvadu.in';
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -541,10 +541,10 @@ const BillingPage = ({ branchId }) => {
     }
   };
 
-  const printReceipt = (order, todayAssignment, summary) => {
+  const printReceipt = async (order, todayAssignment, summary) => {
     const { totalQty, subtotal, totalWithGSTRounded } = summary;
     const { sgst, cgst } = summary;
-    const totalGST = sgst + cgst; // Calculate total GST to conditionally display GST rows
+    const totalGST = sgst + cgst;
     const dateTime = new Date().toLocaleString('en-IN', {
       day: '2-digit',
       month: '2-digit',
@@ -554,7 +554,92 @@ const BillingPage = ({ branchId }) => {
       hour12: true,
     }).replace(',', '');
   
-    // Create an invisible iframe
+    // =============================================
+    // 1. Build the ESC/POS thermal printer commands
+    // =============================================
+    let escposCommands = [
+      '\x1B\x40', // Initialize printer
+      '\x1B\x61\x01', // Center align
+      '\x1D\x21\x11', // Double height/width
+      `${order.branchId?.name || 'MY STORE'}\n`,
+      '\x1D\x21\x00', // Normal text
+      '\x1B\x61\x00', // Left align
+      `${order.branchId?.address || ''}\n`,
+      `Phone: ${order.branchId?.phoneNo || 'N/A'}\n`,
+      `Bill No: ${order.billNo}\n`,
+      `Date: ${dateTime}\n`,
+      '--------------------------------\n',
+      '\x1B\x45\x01', // Bold on
+      'ITEM           QTY  PRICE  AMOUNT\n',
+      '\x1B\x45\x00', // Bold off
+      '--------------------------------\n'
+    ];
+  
+    // Add products
+    order.products.forEach(product => {
+      escposCommands.push(
+        `${truncate(product.name, 14).padEnd(14)} ` +
+        `${product.quantity.toString().padEnd(3)} ` +
+        `₹${product.price.toFixed(2).padEnd(6)} ` +
+        `₹${product.productTotal.toFixed(2)}\n`
+      );
+    });
+  
+    // Add summary
+    escposCommands.push(
+      '--------------------------------\n',
+      `Subtotal: ₹${subtotal.toFixed(2).padStart(24)}\n`
+    );
+  
+    if (totalGST > 0) {
+      escposCommands.push(
+        `GST: ₹${totalGST.toFixed(2).padStart(29)}\n`
+      );
+    }
+  
+    escposCommands.push(
+      `TOTAL: ₹${totalWithGSTRounded.toFixed(2).padStart(27)}\n`,
+      '\n',
+      '\x1B\x61\x01', // Center align
+      'Thank you for your purchase!\n',
+      '\n\n\n',
+      '\x1B\x69' // Paper cut (if supported)
+    );
+  
+    // =============================================
+    // 2. Print directly to USB thermal printer
+    // =============================================
+    try {
+      await printViaUSB(escposCommands.join(''));
+      return { success: true, billNo: order.billNo };
+    } catch (error) {
+      console.error('Print error:', error);
+      // Fallback to iframe printing if USB fails
+      return await fallbackToIframePrinting(order, todayAssignment, summary);
+    }
+  };
+  
+  // =============================================
+  // Helper Functions
+  // =============================================
+  
+  async function printViaUSB(content) {
+    if (!('serial' in navigator)) {
+      throw new Error('Web Serial API not supported. Please use Chrome/Edge.');
+    }
+  
+    const port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 9600 }); // Adjust baud rate if needed
+  
+    const writer = port.writable.getWriter();
+    await writer.write(new TextEncoder().encode(content));
+    
+    writer.releaseLock();
+    await port.close();
+  }
+  
+  async function fallbackToIframePrinting(order, todayAssignment, summary) {
+    // Your existing iframe printing implementation
     const iframe = document.createElement('iframe');
     iframe.style.position = 'absolute';
     iframe.style.width = '0';
@@ -579,11 +664,11 @@ const BillingPage = ({ branchId }) => {
               color: #000; 
               font-weight: bold; 
             }
-            h2 { 
+            h1 { 
               text-align: center; 
-              font-size: 16px; 
+              font-size: 18px; 
               font-weight: bold; 
-              margin: 0 0 5px 0; 
+              margin: 0 0 3px 0; 
               color: #000; 
             }
             .header { 
@@ -731,7 +816,7 @@ const BillingPage = ({ branchId }) => {
           </style>
         </head>
         <body>
-          <h2>${order.branchId?.name || 'Unknown Branch'}</h2>
+          <h1>${order.branchId?.name || 'Unknown Branch'}</h1>
           <p style="text-align: center;">${order.branchId?.address || 'Address Not Available'}</p>
           <p style="text-align: center;">Phone: ${order.branchId?.phoneNo || 'Phone Not Available'}</p>
           <p style="text-align: center;">Bill No: ${order.billNo}</p>
@@ -809,22 +894,41 @@ const BillingPage = ({ branchId }) => {
     `);
     doc.close();
   
-    // Focus and print from the iframe
     iframe.contentWindow.focus();
     iframe.contentWindow.print();
   
-    // Clean up: Remove the iframe after printing
-    iframe.contentWindow.onafterprint = () => {
-      document.body.removeChild(iframe);
-    };
-  
-    // Fallback: Remove iframe after a delay if onafterprint doesn't fire
-    setTimeout(() => {
-      if (iframe.parentNode) {
+    return new Promise((resolve) => {
+      iframe.contentWindow.onafterprint = () => {
         document.body.removeChild(iframe);
-      }
-    }, 1000);
-  };
+        resolve({ success: true, billNo: order.billNo });
+      };
+      setTimeout(() => {
+        if (iframe.parentNode) {
+          document.body.removeChild(iframe);
+        }
+        resolve({ success: true, billNo: order.billNo });
+      }, 1000);
+    });
+  }
+  
+  function truncate(str, n) {
+    return (str.length > n) ? str.substr(0, n-1) + '…' : str;
+  }
+  
+  // Add padding functions if not already available
+  if (!String.prototype.padEnd) {
+    String.prototype.padEnd = function(length, padString = ' ') {
+      if (this.length >= length) return this.toString();
+      return this + padString.repeat(length - this.length);
+    };
+  }
+  
+  if (!String.prototype.padStart) {
+    String.prototype.padStart = function(length, padString = ' ') {
+      if (this.length >= length) return this.toString();
+      return padString.repeat(length - this.length) + this;
+    };
+  }
 
   const getCardSize = () => {
     if (typeof window === 'undefined') return 200;
