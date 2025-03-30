@@ -42,7 +42,7 @@ const BillingPage = ({ branchId }) => {
   const [touchStartX, setTouchStartX] = useState(null);
 
   const contentRef = useRef(null);
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://apib.dinasuvadu.in';
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
   // Fetch Functions
   const fetchBranchDetails = async (token, branchId) => {
@@ -376,16 +376,16 @@ const BillingPage = ({ branchId }) => {
       message.warning('Please select a payment method!');
       return;
     }
-
+  
     const { totalQty, uniqueItems, subtotal, totalGST, totalWithGST } = calculateCartTotals();
-
+  
     const totalWithGSTRounded = Math.round(totalWithGST);
     const roundOff = totalWithGSTRounded - totalWithGST;
     const tenderAmount = totalWithGSTRounded;
     const balance = tenderAmount - totalWithGSTRounded;
     const sgst = totalGST / 2;
     const cgst = totalGST / 2;
-
+  
     const orderData = {
       branchId,
       tab: 'billing',
@@ -410,10 +410,23 @@ const BillingPage = ({ branchId }) => {
       totalItems: uniqueItems,
       status: 'completed',
       waiterId: selectedWaiter?._id || null,
+      printSummary: {
+        totalQty,
+        totalItems: uniqueItems,
+        subtotal,
+        sgst,
+        cgst,
+        totalWithGST,
+        totalWithGSTRounded,
+        roundOff,
+        paymentMethod,
+        tenderAmount,
+        balance,
+      },
     };
-
+  
     try {
-      const response = await fetch(`${BACKEND_URL}/api/orders`, {
+      const response = await fetch(`${BACKEND_URL}/api/orders/print`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -421,24 +434,11 @@ const BillingPage = ({ branchId }) => {
         },
         body: JSON.stringify(orderData),
       });
-
+  
       const data = await response.json();
       if (response.ok) {
-        message.success(data.message || 'Cart saved and ready to print!');
+        message.success(data.message || 'Order saved and printed!');
         setLastBillNo(data.order.billNo);
-        printReceipt(data.order, todayAssignment, {
-          totalQty,
-          totalItems: uniqueItems,
-          subtotal,
-          sgst,
-          cgst,
-          totalWithGST,
-          totalWithGSTRounded,
-          roundOff,
-          paymentMethod,
-          tenderAmount,
-          balance,
-        });
         setSelectedProducts([]);
         setWaiterInput("");
         setWaiterName("");
