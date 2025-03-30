@@ -376,16 +376,16 @@ const BillingPage = ({ branchId }) => {
       message.warning('Please select a payment method!');
       return;
     }
-  
+
     const { totalQty, uniqueItems, subtotal, totalGST, totalWithGST } = calculateCartTotals();
-  
+
     const totalWithGSTRounded = Math.round(totalWithGST);
     const roundOff = totalWithGSTRounded - totalWithGST;
     const tenderAmount = totalWithGSTRounded;
     const balance = tenderAmount - totalWithGSTRounded;
     const sgst = totalGST / 2;
     const cgst = totalGST / 2;
-  
+
     const orderData = {
       branchId,
       tab: 'billing',
@@ -410,23 +410,10 @@ const BillingPage = ({ branchId }) => {
       totalItems: uniqueItems,
       status: 'completed',
       waiterId: selectedWaiter?._id || null,
-      printSummary: {
-        totalQty,
-        totalItems: uniqueItems,
-        subtotal,
-        sgst,
-        cgst,
-        totalWithGST,
-        totalWithGSTRounded,
-        roundOff,
-        paymentMethod,
-        tenderAmount,
-        balance,
-      },
     };
-  
+
     try {
-      const response = await fetch(`${BACKEND_URL}/api/orders/print`, {
+      const response = await fetch(`${BACKEND_URL}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -434,11 +421,24 @@ const BillingPage = ({ branchId }) => {
         },
         body: JSON.stringify(orderData),
       });
-  
+
       const data = await response.json();
       if (response.ok) {
-        message.success(data.message || 'Order saved and printed!');
+        message.success(data.message || 'Cart saved and ready to print!');
         setLastBillNo(data.order.billNo);
+        printReceipt(data.order, todayAssignment, {
+          totalQty,
+          totalItems: uniqueItems,
+          subtotal,
+          sgst,
+          cgst,
+          totalWithGST,
+          totalWithGSTRounded,
+          roundOff,
+          paymentMethod,
+          tenderAmount,
+          balance,
+        });
         setSelectedProducts([]);
         setWaiterInput("");
         setWaiterName("");
@@ -631,7 +631,7 @@ const BillingPage = ({ branchId }) => {
             }
           </style>
         </head>
-        <body onload="window.print()">
+        <body>
           <h1>${order.branchId?.name || 'Unknown Branch'}</h1>
           <p style="text-align: center;">${order.branchId?.address || 'Address Not Available'}</p>
           <p style="text-align: center;">Phone: ${order.branchId?.phoneNo || 'Phone Not Available'}</p>
@@ -714,11 +714,15 @@ const BillingPage = ({ branchId }) => {
     iframe.contentWindow.focus();
     iframe.contentWindow.print();
   
+    iframe.contentWindow.onafterprint = () => {
+      document.body.removeChild(iframe);
+    };
+  
     setTimeout(() => {
       if (iframe.parentNode) {
         document.body.removeChild(iframe);
       }
-    }, 1000); // Clean up iframe after printing
+    }, 1000);
   };
 
   const getCardSize = () => {
