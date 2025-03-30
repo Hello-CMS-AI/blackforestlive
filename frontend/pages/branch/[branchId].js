@@ -34,77 +34,18 @@ const BillingPage = ({ branchId }) => {
   const [selectedCashier, setSelectedCashier] = useState(null);
   const [selectedManager, setSelectedManager] = useState(null);
   const [todayAssignment, setTodayAssignment] = useState({});
-  const [branchInventory, setBranchInventory] = useState([]);
+  const [waiterInput, setWaiterInput] = useState("");
+  const [waiterName, setWaiterName] = useState("");
+  const [waiterError, setWaiterError] = useState("");
+  const [selectedWaiter, setSelectedWaiter] = useState(null);
+  const [waiters, setWaiters] = useState([]);
+  const [touchStartX, setTouchStartX] = useState(null);
 
   const contentRef = useRef(null);
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://apib.dinasuvadu.in';
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedToken = localStorage.getItem('token');
-      setToken(storedToken);
-
-      if (!storedToken) {
-        router.replace('/login');
-        return;
-      }
-
-      try {
-        const decoded = jwtDecodeLib(storedToken);
-        if (decoded.role !== 'branch') {
-          router.replace('/login');
-          return;
-        }
-        setName(decoded.name || decoded.username || "Branch User");
-        setBranchName(`Branch ${branchId.replace('B', '')}`);
-      } catch (error) {
-        console.error('Error decoding token:', error);
-        router.replace('/login');
-      }
-
-      fetchBranchDetails(storedToken, branchId);
-      fetchCategories(storedToken);
-      fetchEmployees(storedToken, 'Cashier', setCashiers);
-      fetchEmployees(storedToken, 'Manager', setManagers);
-      fetchTodayAssignment(storedToken);
-      fetchBranchInventory(storedToken);
-
-      setIsMobile(window.innerWidth <= 991);
-      setIsPortrait(window.matchMedia("(orientation: portrait)").matches);
-
-      const updateContentWidth = () => {
-        if (contentRef.current) {
-          setContentWidth(contentRef.current.getBoundingClientRect().width);
-        }
-      };
-
-      updateContentWidth();
-      window.addEventListener("resize", updateContentWidth);
-
-      const handleOrientationChange = (e) => {
-        setIsPortrait(e.matches);
-        setIsMobileMenuOpen(false);
-        updateContentWidth();
-      };
-
-      const mediaQuery = window.matchMedia("(orientation: portrait)");
-      mediaQuery.addEventListener("change", handleOrientationChange);
-
-      const handleResize = () => {
-        setIsMobile(window.innerWidth <= 991);
-        updateContentWidth();
-      };
-
-      window.addEventListener("resize", handleResize);
-
-      return () => {
-        mediaQuery.removeEventListener("change", handleOrientationChange);
-        window.removeEventListener("resize", handleResize);
-      };
-    }
-  }, [router, branchId]);
-
-  const fetchBranchDetails = async (token) => {
+  // Fetch Functions
+  const fetchBranchDetails = async (token, branchId) => {
     try {
       const response = await fetch(`${BACKEND_URL}/api/branch/${branchId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
@@ -170,22 +111,6 @@ const BillingPage = ({ branchId }) => {
     }
   };
 
-  const fetchBranchInventory = async (token) => {
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/inventory?locationId=${branchId}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setBranchInventory(data);
-      } else {
-        message.error('Failed to fetch branch inventory');
-      }
-    } catch (error) {
-      message.error('Error fetching branch inventory');
-    }
-  };
-
   const fetchProducts = async (categoryId) => {
     setProductsLoading(true);
     try {
@@ -211,6 +136,7 @@ const BillingPage = ({ branchId }) => {
     setProductsLoading(false);
   };
 
+  // Helper Functions
   const applyFilters = (productList) => {
     let filtered = productList;
     if (selectedProductType) {
@@ -259,20 +185,9 @@ const BillingPage = ({ branchId }) => {
 
   const handleProductClick = (product) => {
     const selectedUnitIndex = selectedUnits[product._id] || 0;
-    const stockInfo = branchInventory.find(item => item.productId._id === product._id);
-    const availableStock = stockInfo ? stockInfo.inStock : 0;
-    const currentCount = selectedProducts
-      .filter(item => item._id === product._id)
-      .reduce((sum, item) => sum + item.count, 0);
-  
-    if (currentCount >= availableStock) {
-      message.warning(`${product.name} is out of stock at this branch! (Stock: ${availableStock})`);
-      return;
-    }
-  
     setSelectedProducts(prev => {
       const existingProduct = prev.find(item => item._id === product._id && item.selectedUnitIndex === selectedUnitIndex);
-      const gstRate = product.priceDetails?.[selectedUnitIndex]?.gst || "non-gst"; // Default to "non-gst" if undefined
+      const gstRate = product.priceDetails?.[selectedUnitIndex]?.gst || "non-gst";
       if (existingProduct) {
         return prev.map(item =>
           item._id === product._id && item.selectedUnitIndex === selectedUnitIndex
@@ -285,7 +200,7 @@ const BillingPage = ({ branchId }) => {
           selectedUnitIndex, 
           count: 1, 
           bminstock: 0,
-          gstRate // Add gstRate explicitly to preserve it
+          gstRate
         }];
       }
     });
@@ -356,6 +271,10 @@ const BillingPage = ({ branchId }) => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
+  const handleTouchStart = (e) => {
+    setTouchStartX(e.touches[0].clientX);
+  };
+
   const handleSwipe = (e) => {
     if (!selectedCategory) return;
 
@@ -366,10 +285,21 @@ const BillingPage = ({ branchId }) => {
     }
   };
 
-  const [touchStartX, setTouchStartX] = useState(null);
+  const handleWaiterInputChange = async (value) => {
+    setWaiterInput(value);
+    setWaiterError("");
+    setWaiterName("");
+    setSelectedWaiter(null);
 
-  const handleTouchStart = (e) => {
-    setTouchStartX(e.touches[0].clientX);
+    if (!value) return;
+
+    const waiter = waiters.find(w => w.employeeId === `E${value.padStart(3, '0')}`);
+    if (waiter) {
+      setWaiterName(waiter.name);
+      setSelectedWaiter(waiter);
+    } else {
+      setWaiterError("Waiter not found");
+    }
   };
 
   const handleSave = async () => {
@@ -395,9 +325,9 @@ const BillingPage = ({ branchId }) => {
           quantity: product.count,
           price: product.priceDetails?.[product.selectedUnitIndex]?.price || 0,
           unit: product.priceDetails?.[product.selectedUnitIndex]?.unit || '',
-          gstRate: gstRate, // Use "non-gst" instead of 0
+          gstRate: gstRate,
           productTotal: calculateProductTotal(product),
-          productGST: gstRate === "non-gst" ? 0 : calculateProductGST(product), // Force 0 for non-gst
+          productGST: gstRate === "non-gst" ? 0 : calculateProductGST(product),
           bminstock: product.bminstock || 0,
         };
       }),
@@ -407,6 +337,7 @@ const BillingPage = ({ branchId }) => {
       totalWithGST,
       totalItems: uniqueItems,
       status: 'draft',
+      waiterId: selectedWaiter?._id || null,
     };
 
     try {
@@ -424,6 +355,10 @@ const BillingPage = ({ branchId }) => {
         message.success(data.message || 'Cart saved as draft!');
         setLastBillNo(data.order.billNo);
         setSelectedProducts([]);
+        setWaiterInput("");
+        setWaiterName("");
+        setWaiterError("");
+        setSelectedWaiter(null);
       } else {
         message.error(data.message || 'Failed to save order');
       }
@@ -462,9 +397,9 @@ const BillingPage = ({ branchId }) => {
           quantity: product.count,
           price: product.priceDetails?.[product.selectedUnitIndex]?.price || 0,
           unit: product.priceDetails?.[product.selectedUnitIndex]?.unit || '',
-          gstRate: gstRate, // Use "non-gst" instead of 0
+          gstRate: gstRate,
           productTotal: calculateProductTotal(product),
-          productGST: gstRate === "non-gst" ? 0 : calculateProductGST(product), // Force 0 for non-gst
+          productGST: gstRate === "non-gst" ? 0 : calculateProductGST(product),
           bminstock: product.bminstock || 0,
         };
       }),
@@ -474,6 +409,7 @@ const BillingPage = ({ branchId }) => {
       totalWithGST,
       totalItems: uniqueItems,
       status: 'completed',
+      waiterId: selectedWaiter?._id || null,
     };
 
     try {
@@ -490,7 +426,6 @@ const BillingPage = ({ branchId }) => {
       if (response.ok) {
         message.success(data.message || 'Cart saved and ready to print!');
         setLastBillNo(data.order.billNo);
-        await reduceBranchStock(data.order);
         printReceipt(data.order, todayAssignment, {
           totalQty,
           totalItems: uniqueItems,
@@ -505,6 +440,10 @@ const BillingPage = ({ branchId }) => {
           balance,
         });
         setSelectedProducts([]);
+        setWaiterInput("");
+        setWaiterName("");
+        setWaiterError("");
+        setSelectedWaiter(null);
       } else {
         message.error(data.message || 'Failed to save and print order');
       }
@@ -513,35 +452,18 @@ const BillingPage = ({ branchId }) => {
     }
   };
 
-  const reduceBranchStock = async (order) => {
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/inventory/reduce`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          branchId: order.branchId,
-          products: order.products.map(product => ({
-            productId: product.productId,
-            quantity: product.quantity,
-          })),
-        }),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        message.success('Stock updated successfully');
-      } else {
-        message.error(data.message || 'Failed to reduce stock');
-      }
-    } catch (error) {
-      message.error('Error reducing stock');
-    }
+  const handleClearCart = () => {
+    setSelectedProducts([]);
+    setWaiterInput("");
+    setWaiterName("");
+    setWaiterError("");
+    setSelectedWaiter(null);
+    setPaymentMethod(null);
+    setLastBillNo(null);
+    message.info('Cart cleared');
   };
 
-  const printReceipt = async (order, todayAssignment, summary) => {
+  const printReceipt = (order, todayAssignment, summary) => {
     const { totalQty, subtotal, totalWithGSTRounded } = summary;
     const { sgst, cgst } = summary;
     const totalGST = sgst + cgst;
@@ -554,92 +476,12 @@ const BillingPage = ({ branchId }) => {
       hour12: true,
     }).replace(',', '');
   
-    // =============================================
-    // 1. Build the ESC/POS thermal printer commands
-    // =============================================
-    let escposCommands = [
-      '\x1B\x40', // Initialize printer
-      '\x1B\x61\x01', // Center align
-      '\x1D\x21\x11', // Double height/width
-      `${order.branchId?.name || 'MY STORE'}\n`,
-      '\x1D\x21\x00', // Normal text
-      '\x1B\x61\x00', // Left align
-      `${order.branchId?.address || ''}\n`,
-      `Phone: ${order.branchId?.phoneNo || 'N/A'}\n`,
-      `Bill No: ${order.billNo}\n`,
-      `Date: ${dateTime}\n`,
-      '--------------------------------\n',
-      '\x1B\x45\x01', // Bold on
-      'ITEM           QTY  PRICE  AMOUNT\n',
-      '\x1B\x45\x00', // Bold off
-      '--------------------------------\n'
-    ];
+    const waiterInfo = selectedWaiter
+      ? `${selectedWaiter.name} (${selectedWaiter.employeeId})`
+      : order.waiterId
+      ? `${order.waiterId.name}${order.waiterId.employeeId ? ` (${order.waiterId.employeeId})` : ''}`
+      : 'Not Assigned';
   
-    // Add products
-    order.products.forEach(product => {
-      escposCommands.push(
-        `${truncate(product.name, 14).padEnd(14)} ` +
-        `${product.quantity.toString().padEnd(3)} ` +
-        `₹${product.price.toFixed(2).padEnd(6)} ` +
-        `₹${product.productTotal.toFixed(2)}\n`
-      );
-    });
-  
-    // Add summary
-    escposCommands.push(
-      '--------------------------------\n',
-      `Subtotal: ₹${subtotal.toFixed(2).padStart(24)}\n`
-    );
-  
-    if (totalGST > 0) {
-      escposCommands.push(
-        `GST: ₹${totalGST.toFixed(2).padStart(29)}\n`
-      );
-    }
-  
-    escposCommands.push(
-      `TOTAL: ₹${totalWithGSTRounded.toFixed(2).padStart(27)}\n`,
-      '\n',
-      '\x1B\x61\x01', // Center align
-      'Thank you for your purchase!\n',
-      '\n\n\n',
-      '\x1B\x69' // Paper cut (if supported)
-    );
-  
-    // =============================================
-    // 2. Print directly to USB thermal printer
-    // =============================================
-    try {
-      await printViaUSB(escposCommands.join(''));
-      return { success: true, billNo: order.billNo };
-    } catch (error) {
-      console.error('Print error:', error);
-      // Fallback to iframe printing if USB fails
-      return await fallbackToIframePrinting(order, todayAssignment, summary);
-    }
-  };
-  
-  // =============================================
-  // Helper Functions
-  // =============================================
-  
-  async function printViaUSB(content) {
-    if (!('serial' in navigator)) {
-      throw new Error('Web Serial API not supported. Please use Chrome/Edge.');
-    }
-  
-    const port = await navigator.serial.requestPort();
-    await port.open({ baudRate: 9600 }); // Adjust baud rate if needed
-  
-    const writer = port.writable.getWriter();
-    await writer.write(new TextEncoder().encode(content));
-    
-    writer.releaseLock();
-    await port.close();
-  }
-  
-  async function fallbackToIframePrinting(order, todayAssignment, summary) {
-    // Your existing iframe printing implementation
     const iframe = document.createElement('iframe');
     iframe.style.position = 'absolute';
     iframe.style.width = '0';
@@ -690,11 +532,13 @@ const BillingPage = ({ branchId }) => {
             .header-right { 
               text-align: right; 
               max-width: 50%; 
-              white-space: nowrap; 
-              overflow: hidden; 
-              text-overflow: ellipsis; 
               color: #000; 
               font-weight: bold; 
+            }
+            .header-right p.waiter { 
+              white-space: normal; 
+              overflow: visible; 
+              text-overflow: clip; 
             }
             p { 
               margin: 2px 0; 
@@ -774,34 +618,6 @@ const BillingPage = ({ branchId }) => {
               font-weight: bold;
               font-size: 14px;
             }
-            .before-grand-total {
-              border-bottom: 1px dashed #000;
-              padding-bottom: 5px;
-              margin-bottom: 5px;
-            }
-            .item-row { 
-              display: flex; 
-              width: 100%; 
-            }
-            .item-name { 
-              flex: 2; 
-              word-break: break-word; 
-              padding-right: 10px; 
-            }
-            .item-qty { 
-              flex: 0.7; 
-              text-align: right; 
-              padding-right: 10px; 
-            }
-            .item-price { 
-              flex: 1.2; 
-              text-align: right; 
-              padding-right: 10px; 
-            }
-            .item-amount { 
-              flex: 1.3; 
-              text-align: right; 
-            }
             @media print { 
               @page { 
                 margin: 0; 
@@ -827,6 +643,7 @@ const BillingPage = ({ branchId }) => {
             </div>
             <div class="header-right">
               <p>Cashier: ${todayAssignment?.cashierId?.name || 'Not Assigned'}</p>
+              <p class="waiter">Waiter: ${waiterInfo}</p>
             </div>
           </div>
           <div class="divider"></div>
@@ -897,38 +714,16 @@ const BillingPage = ({ branchId }) => {
     iframe.contentWindow.focus();
     iframe.contentWindow.print();
   
-    return new Promise((resolve) => {
-      iframe.contentWindow.onafterprint = () => {
+    iframe.contentWindow.onafterprint = () => {
+      document.body.removeChild(iframe);
+    };
+  
+    setTimeout(() => {
+      if (iframe.parentNode) {
         document.body.removeChild(iframe);
-        resolve({ success: true, billNo: order.billNo });
-      };
-      setTimeout(() => {
-        if (iframe.parentNode) {
-          document.body.removeChild(iframe);
-        }
-        resolve({ success: true, billNo: order.billNo });
-      }, 1000);
-    });
-  }
-  
-  function truncate(str, n) {
-    return (str.length > n) ? str.substr(0, n-1) + '…' : str;
-  }
-  
-  // Add padding functions if not already available
-  if (!String.prototype.padEnd) {
-    String.prototype.padEnd = function(length, padString = ' ') {
-      if (this.length >= length) return this.toString();
-      return this + padString.repeat(length - this.length);
-    };
-  }
-  
-  if (!String.prototype.padStart) {
-    String.prototype.padStart = function(length, padString = ' ') {
-      if (this.length >= length) return this.toString();
-      return padString.repeat(length - this.length) + this;
-    };
-  }
+      }
+    }, 1000);
+  };
 
   const getCardSize = () => {
     if (typeof window === 'undefined') return 200;
@@ -940,12 +735,6 @@ const BillingPage = ({ branchId }) => {
     if (window.innerWidth >= 576) return isPortrait ? 120 : 130;
     return isPortrait ? 100 : 110;
   };
-
-  const cardSize = getCardSize();
-  const gutter = 16;
-  const columns = contentWidth > 0 ? Math.floor(contentWidth / (cardSize + gutter)) : 1;
-  const fontSize = isPortrait && window.innerWidth <= 575 ? 10 : Math.max(cardSize * 0.1, 12);
-  const lineHeight = Math.max(cardSize * 0.3, 20);
 
   const formatPriceDetails = (priceDetails, selectedUnitIndex = 0) => {
     if (!priceDetails || priceDetails.length === 0 || typeof selectedUnitIndex !== 'number') return 'No Price';
@@ -989,7 +778,7 @@ const BillingPage = ({ branchId }) => {
     const productTotal = calculateProductTotal(product);
     const selectedUnitIndex = product.selectedUnitIndex || 0;
     const gstRate = product.priceDetails?.[selectedUnitIndex]?.gst || "non-gst";
-    if (gstRate === "non-gst" || typeof gstRate !== 'number') return 0; // No GST for non-gst items
+    if (gstRate === "non-gst" || typeof gstRate !== 'number') return 0;
     return productTotal * (gstRate / 100);
   };
 
@@ -1001,8 +790,6 @@ const BillingPage = ({ branchId }) => {
     const totalWithGST = subtotal + totalGST;
     return { totalQty, uniqueItems, subtotal, totalGST, totalWithGST };
   };
-
-  const { totalQty, uniqueItems, subtotal, totalGST, totalWithGST } = calculateCartTotals();
 
   const saveAssignment = async () => {
     if (!selectedCashier && !selectedManager) {
@@ -1032,6 +819,74 @@ const BillingPage = ({ branchId }) => {
       message.error('Error saving assignment');
     }
   };
+
+  // useEffect
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedToken = localStorage.getItem('token');
+      setToken(storedToken);
+
+      if (!storedToken) {
+        router.replace('/login');
+        return;
+      }
+
+      try {
+        const decoded = jwtDecodeLib(storedToken);
+        if (decoded.role !== 'branch') {
+          router.replace('/login');
+          return;
+        }
+        setName(decoded.name || decoded.username || "Branch User");
+        setBranchName(`Branch ${branchId.replace('B', '')}`);
+      } catch (error) {
+        console.error('Error decoding token:', error);
+        router.replace('/login');
+      }
+
+      fetchBranchDetails(storedToken, branchId);
+      fetchCategories(storedToken);
+      fetchEmployees(storedToken, 'Cashier', setCashiers);
+      fetchEmployees(storedToken, 'Manager', setManagers);
+      fetchEmployees(storedToken, 'Waiter', setWaiters);
+      fetchTodayAssignment(storedToken);
+
+      setIsMobile(window.innerWidth <= 991);
+      setIsPortrait(window.matchMedia("(orientation: portrait)").matches);
+
+      const updateContentWidth = () => {
+        if (contentRef.current) {
+          setContentWidth(contentRef.current.getBoundingClientRect().width);
+        }
+      };
+
+      updateContentWidth();
+      window.addEventListener("resize", updateContentWidth);
+
+      const handleOrientationChange = (e) => {
+        setIsPortrait(e.matches);
+        setIsMobileMenuOpen(false);
+        updateContentWidth();
+      };
+
+      const mediaQuery = window.matchMedia("(orientation: portrait)");
+      mediaQuery.addEventListener("change", handleOrientationChange);
+
+      const handleResize = () => {
+        setIsMobile(window.innerWidth <= 991);
+        updateContentWidth();
+      };
+
+      window.addEventListener("resize", handleResize);
+
+      return () => {
+        mediaQuery.removeEventListener("change", handleOrientationChange);
+        window.removeEventListener("resize", handleResize);
+      };
+    }
+  }, [router, branchId]);
+
+  const { totalQty, uniqueItems, subtotal, totalGST, totalWithGST } = calculateCartTotals();
 
   const userMenu = (
     <div style={{ padding: '10px', background: '#fff', borderRadius: '4px', width: '300px' }}>
@@ -1093,6 +948,12 @@ const BillingPage = ({ branchId }) => {
     </div>
   );
 
+  const cardSize = getCardSize();
+  const gutter = 16;
+  const columns = contentWidth > 0 ? Math.floor(contentWidth / (cardSize + gutter)) : 1;
+  const fontSize = isPortrait && window.innerWidth <= 575 ? 10 : Math.max(cardSize * 0.1, 12);
+  const lineHeight = Math.max(cardSize * 0.3, 20);
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header
@@ -1112,7 +973,6 @@ const BillingPage = ({ branchId }) => {
           boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
         }}
       >
-        {/* Left Side: User Icon and Username */}
         <div style={{ display: "flex", alignItems: "center" }}>
           <Space align="center">
             <Dropdown overlay={userMenu} trigger={['click']}>
@@ -1131,7 +991,6 @@ const BillingPage = ({ branchId }) => {
           </Space>
         </div>
 
-        {/* Center: Search Bar */}
         <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
           {selectedCategory && (
             <Input
@@ -1140,7 +999,7 @@ const BillingPage = ({ branchId }) => {
               onChange={(e) => handleSearch(e.target.value)}
               style={{
                 width: '100%',
-                maxWidth: '600px', // Increased width
+                maxWidth: '600px',
                 height: '40px',
                 fontSize: '16px',
                 borderRadius: '8px',
@@ -1151,7 +1010,6 @@ const BillingPage = ({ branchId }) => {
           )}
         </div>
 
-        {/* Right Side: Filter Buttons, Cart, Logout, and Mobile Menu */}
         <div style={{ display: "flex", alignItems: "center" }}>
           <Button
             type="text"
@@ -1339,6 +1197,7 @@ const BillingPage = ({ branchId }) => {
             )}
           </div>
         </Content>
+
         <Sider
           collapsed={!isCartExpanded}
           width={400}
@@ -1349,62 +1208,143 @@ const BillingPage = ({ branchId }) => {
             display: isCartExpanded ? 'block' : 'none',
           }}
         >
-          <div style={{ padding: '20px', color: '#000000', textAlign: 'left' }}>
-            <h3 style={{ marginBottom: '15px' }}>Cart</h3>
-            {lastBillNo && (
-              <p style={{ marginBottom: '15px', fontWeight: 'bold' }}>
-                Last Bill No: {lastBillNo}
-              </p>
-            )}
-            {selectedProducts.length > 0 ? (
-              <>
+          <div
+            style={{
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '20px',
+              color: '#000000',
+              textAlign: 'left',
+            }}
+          >
+            <div style={{ flex: '0 0 auto' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <h3 style={{ margin: 0 }}>Cart</h3>
+                {lastBillNo && (
+                  <p style={{ margin: 0, fontWeight: 'bold' }}>
+                    Last Bill No: {lastBillNo}
+                  </p>
+                )}
+              </div>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px' }}>Enter Waiter ID:</label>
+                <Input
+                  value={waiterInput}
+                  onChange={(e) => handleWaiterInputChange(e.target.value)}
+                  placeholder="Enter waiter ID (e.g., 4 for E004)"
+                  style={{ width: '100%' }}
+                />
+                {waiterName && (
+                  <p style={{ marginTop: '5px', color: '#52c41a' }}>
+                    Waiter: {waiterName}
+                  </p>
+                )}
+                {waiterError && (
+                  <p style={{ marginTop: '5px', color: '#ff4d4f' }}>
+                    {waiterError}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div
+              style={{
+                flex: '1 1 auto',
+                overflowY: 'auto',
+                marginBottom: '20px',
+                paddingBottom: '20px',
+              }}
+            >
+              {selectedProducts.length > 0 ? (
                 <ul style={{ listStyleType: 'none', padding: 0 }}>
-  {selectedProducts.map(product => {
-    const gstRate = product.priceDetails?.[product.selectedUnitIndex]?.gst || "non-gst";
-    return (
-      <li key={`${product._id}-${product.selectedUnitIndex}`} style={{ marginBottom: '30px', fontSize: '14px', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ flex: 1 }}>
-            {formatDisplayName(product)}{gstRate === "non-gst" ? " (Non-GST)" : ""}
-          </span>
-          <span style={{ flex: 1, textAlign: 'right' }}>
-            {formatPriceDetails(product.priceDetails, product.selectedUnitIndex)} x {product.count}
-          </span>
-          <Button
-            type="text"
-            icon={<CloseOutlined />}
-            onClick={() => handleRemoveProduct(product._id, product.selectedUnitIndex)}
-            style={{ color: '#ff4d4f', fontSize: '14px', marginLeft: '10px' }}
-          />
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingBottom: '5px', borderBottom: '1px dotted #d9d9d9' }}>
-          <Space size="middle">
-            <Button
-              type="default"
-              icon={<MinusOutlined />}
-              onClick={() => handleDecreaseCount(product._id, product.selectedUnitIndex)}
-              size="small"
-              style={{ backgroundColor: '#ff4d4f', color: '#ffffff' }}
-            />
-            <span>{product.count}</span>
-            <Button
-              type="default"
-              icon={<PlusOutlined />}
-              onClick={() => handleIncreaseCount(product._id, product.selectedUnitIndex)}
-              size="small"
-              style={{ backgroundColor: '#95BF47', color: '#ffffff' }}
-            />
-          </Space>
-          <span style={{ fontWeight: 'bold' }}>
-            ₹{calculateProductTotal(product)}
-            {gstRate !== "non-gst" && ` + ₹${calculateProductGST(product).toFixed(2)} GST`}
-          </span>
-        </div>
-      </li>
-    );
-  })}
-</ul>
-                <div style={{ marginTop: '20px', borderTop: '1px solid #d9d9d9', paddingTop: '10px' }}>
+                  {selectedProducts.map(product => {
+                    const gstRate = product.priceDetails?.[product.selectedUnitIndex]?.gst || "non-gst";
+                    return (
+                      <li
+                        key={`${product._id}-${product.selectedUnitIndex}`}
+                        style={{ marginBottom: '30px', fontSize: '14px', display: 'flex', flexDirection: 'column' }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ flex: 1, fontWeight: 'bold' }}>
+                            {formatDisplayName(product)}{gstRate === "non-gst" ? " (Non-GST)" : ""}
+                          </span>
+                          <span style={{ flex: 1, textAlign: 'right' }}>
+                            {formatPriceDetails(product.priceDetails, product.selectedUnitIndex)} x {product.count}
+                          </span>
+                          <Button
+                            type="text"
+                            icon={<CloseOutlined />}
+                            onClick={() => handleRemoveProduct(product._id, product.selectedUnitIndex)}
+                            style={{
+                              width: '24px',
+                              height: '24px',
+                              minWidth: '24px',
+                              padding: 0,
+                              fontSize: '14px',
+                              color: '#ff4d4f',
+                              backgroundColor: '#fff',
+                              border: '2px solid #ff4d4f',
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              marginLeft: '10px',
+                            }}
+                          />
+                        </div>
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginTop: '10px',
+                            paddingBottom: '5px',
+                            borderBottom: '1px dotted #d9d9d9',
+                          }}
+                        >
+                          <Space size="middle">
+                            <Button
+                              type="default"
+                              icon={<MinusOutlined />}
+                              onClick={() => handleDecreaseCount(product._id, product.selectedUnitIndex)}
+                              size="small"
+                              style={{ backgroundColor: '#ff4d4f', color: '#ffffff' }}
+                            />
+                            <span>{product.count}</span>
+                            <Button
+                              type="default"
+                              icon={<PlusOutlined />}
+                              onClick={() => handleIncreaseCount(product._id, product.selectedUnitIndex)}
+                              size="small"
+                              style={{ backgroundColor: '#95BF47', color: '#ffffff' }}
+                            />
+                          </Space>
+                          <span style={{ fontWeight: 'bold' }}>
+                            ₹{calculateProductTotal(product)}
+                            {gstRate !== "non-gst" && ` + ₹${calculateProductGST(product).toFixed(2)} GST`}
+                          </span>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p>No products selected.</p>
+              )}
+            </div>
+            {selectedProducts.length > 0 && (
+              <div
+                style={{
+                  flex: '0 0 auto',
+                  position: 'sticky',
+                  bottom: 0,
+                  background: '#FFFFFF',
+                  paddingTop: '10px',
+                  borderTop: '1px solid #d9d9d9',
+                  zIndex: 1,
+                }}
+              >
+                <div style={{ marginBottom: '15px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '14px', marginBottom: '5px' }}>
                     <span>Total (Excl. GST)</span>
                     <span>₹{subtotal.toFixed(2)}</span>
@@ -1422,7 +1362,7 @@ const BillingPage = ({ branchId }) => {
                     <span>{uniqueItems}</span>
                   </div>
                 </div>
-                <div style={{ marginTop: '15px', marginBottom: '15px' }}>
+                <div style={{ marginBottom: '15px' }}>
                   <Radio.Group
                     onChange={(e) => setPaymentMethod(e.target.value)}
                     value={paymentMethod}
@@ -1431,20 +1371,32 @@ const BillingPage = ({ branchId }) => {
                     <Radio.Button value="cash" style={{ borderRadius: '50px', textAlign: 'center' }}>
                       <WalletOutlined /> Cash
                     </Radio.Button>
+                    <Radio.Button value="nextCard" style={{ borderRadius: '50px', textAlign: 'center' }}>
+                      <CreditCardOutlined /> Next Card
+                    </Radio.Button>
                     <Radio.Button value="upi" style={{ borderRadius: '50px', textAlign: 'center' }}>
                       <CreditCardOutlined /> UPI
                     </Radio.Button>
                   </Radio.Group>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
                   <Button
                     type="primary"
                     icon={<SaveOutlined />}
                     onClick={handleSave}
-                    style={{ flex: 1, marginRight: '10px' }}
+                    style={{ flex: 1 }}
                     disabled={lastBillNo && selectedProducts.length === 0}
                   >
                     Save
+                  </Button>
+                  <Button
+                    type="default"
+                    icon={<CloseOutlined />}
+                    onClick={handleClearCart}
+                    style={{ flex: 1, backgroundColor: '#ff4d4f', color: '#ffffff' }}
+                    disabled={selectedProducts.length === 0}
+                  >
+                    Clear
                   </Button>
                   <Button
                     type="primary"
@@ -1456,9 +1408,7 @@ const BillingPage = ({ branchId }) => {
                     Save & Print
                   </Button>
                 </div>
-              </>
-            ) : (
-              <p>No products selected.</p>
+              </div>
             )}
           </div>
         </Sider>
@@ -1470,12 +1420,6 @@ const BillingPage = ({ branchId }) => {
     const selectedUnitIndex = selectedUnits[product._id] || 0;
     const selectedProduct = selectedProducts.find(item => item._id === product._id && item.selectedUnitIndex === selectedUnitIndex);
     const count = selectedProduct ? selectedProduct.count : 0;
-    const stockInfo = branchInventory.find(item => item.productId._id === product._id);
-    const availableStock = stockInfo ? stockInfo.inStock : 0;
-    const currentCount = selectedProducts
-      .filter(item => item._id === product._id)
-      .reduce((sum, item) => sum + item.count, 0);
-    const isOutOfStock = currentCount >= availableStock;
 
     return (
       <div style={{ position: 'relative' }}>
@@ -1533,21 +1477,9 @@ const BillingPage = ({ branchId }) => {
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              display: 'flex',
-              alignItems: 'center',
             }}
           >
             {product.name}
-            <span
-              style={{
-                marginLeft: 5,
-                color: isOutOfStock ? 'red' : 'rgb(150, 191, 71)',
-                fontSize: `${fontSize * 0.7}px`,
-                fontWeight: 'bold',
-              }}
-            >
-              {isOutOfStock ? 'OS' : `-${availableStock}`}
-            </span>
           </div>
           <div
             style={{
