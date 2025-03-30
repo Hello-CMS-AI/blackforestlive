@@ -37,7 +37,7 @@ const BillingPage = ({ branchId }) => {
   const [branchInventory, setBranchInventory] = useState([]);
 
   const contentRef = useRef(null);
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://apib.dinasuvadu.in';
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://apib.dinasuvadu.in/';
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -543,15 +543,16 @@ const BillingPage = ({ branchId }) => {
 
   const printReceipt = (order, todayAssignment, summary) => {
     const { totalQty, subtotal, totalWithGSTRounded } = summary;
-    const { sgst, cgst } = summary; // Keep these for conditional rendering of values
+    const { sgst, cgst } = summary;
+    const totalGST = sgst + cgst; // Calculate total GST to conditionally display GST rows
     const printWindow = window.open('', '_blank');
     const dateTime = new Date().toLocaleString('en-IN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
     }).replace(',', '');
 
     printWindow.document.write(`
@@ -559,50 +560,70 @@ const BillingPage = ({ branchId }) => {
         <head>
           <title>Receipt</title>
           <style>
-            body { font-family: 'Courier New', Courier, monospace; width: 302px; margin: 0; padding: 5px; font-size: 10px; line-height: 1.2; color: #000; }
-            h2 { text-align: center; font-size: 14px; font-weight: bold; margin: 0 0 5px 0; color: #000; }
-            .header { display: flex; justify-content: space-between; margin-bottom: 5px; width: 100%; color: #000; }
-            .header-left { text-align: left; max-width: 50%; overflow: hidden; text-overflow: ellipsis; color: #000; }
-            .header-right { text-align: right; max-width: 50%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #000; }
-            p { margin: 2px 0; overflow: hidden; text-overflow: ellipsis; color: #000; }
-            table { width: 100%; border-collapse: collapse; margin-top: 5px; color: #000; }
-            th, td { padding: 2px; text-align: left; font-size: 10px; color: #000; }
+            body { font-family: 'Courier New', Courier, monospace; width: 302px; margin: 0; padding: 5px; font-size: 12px; line-height: 1.3; color: #000; font-weight: bold; }
+            h2 { text-align: center; font-size: 16px; font-weight: bold; margin: 0 0 5px 0; color: #000; }
+            .header { display: flex; justify-content: space-between; margin-bottom: 5px; width: 100%; color: #000; font-weight: bold; }
+            .header-left { text-align: left; max-width: 50%; overflow: hidden; text-overflow: ellipsis; color: #000; font-weight: bold; }
+            .header-right { text-align: right; max-width: 50%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #000; font-weight: bold; }
+            p { margin: 2px 0; overflow: hidden; text-overflow: ellipsis; color: #000; font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; margin-top: 5px; color: #000; font-weight: bold; }
+            th, td { padding: 5px 2px; text-align: left; font-size: 12px; color: #000; font-weight: bold; vertical-align: top; }
             th { font-weight: bold; color: #000; }
             .divider { border-top: 1px dashed #000; margin: 5px 0; }
-            .summary { margin-top: 5px; color: #000; }
+            .summary { margin-top: 5px; color: #000; font-weight: bold; }
             .summary div {
               display: flex;
               justify-content: flex-end;
               white-space: nowrap;
               color: #000;
+              font-weight: bold;
+              font-size: 12px;
             }
             .summary div span {
               color: #000;
+              font-weight: bold;
+              font-size: 12px;
             }
             .summary div span:first-child {
               margin-right: 5px;
             }
             .grand-total {
-              font-weight: bold;
-              font-size: 1.1em;
+              font-weight: 900; /* Maximum boldness */
+              font-size: 22px; /* Increased font size */
               color: #000;
+              margin-top: 10px;
+              padding-top: 5px;
+              border-top: 1px dashed #000;
+              display: flex;
+              justify-content: flex-end;
+              border-bottom: 1px dashed #000; /* Added bottom border */
+              padding-bottom: 5px; /* Added bottom padding */
+              margin-bottom: 10px; /* Added bottom margin */
             }
-            .grand-total span {
-              color: #000;
+            .grand-total span:first-child {
+              font-size: 1.5em; /* Smaller text for "Grand Total:" */
+              margin-right: 5px;
             }
             .grand-total span:last-child {
-              font-size: 1.1em;
+              font-size: 1.5em; /* Larger number */
             }
             .thank-you {
               text-align: center;
-              margin-top: 5px;
+              margin-top: 10px;
               color: #000;
+              font-weight: bold;
+              font-size: 14px;
             }
             .before-grand-total {
               border-bottom: 1px dashed #000;
               padding-bottom: 5px;
               margin-bottom: 5px;
             }
+            .item-row { display: flex; width: 100%; }
+            .item-name { flex: 2; word-break: break-word; padding-right: 10px; }
+            .item-qty { flex: 0.7; text-align: right; padding-right: 10px; }
+            .item-price { flex: 1.2; text-align: right; padding-right: 10px; }
+            .item-amount { flex: 1.3; text-align: right; }
             @media print { @page { margin: 0; size: 80mm auto; } body { margin: 0; padding: 5px; } }
           </style>
         </head>
@@ -625,35 +646,36 @@ const BillingPage = ({ branchId }) => {
             <thead>
               <tr>
                 <th style="width: 50%;">Item</th>
-                <th style="width: 15%;">Qty</th>
-                <th style="width: 15%;">Price</th>
-                <th style="width: 20%;">Amount</th>
+                <th style="width: 15%; text-align: right;">Qty</th>
+                <th style="width: 15%; text-align: right;">Price</th>
+                <th style="width: 20%; text-align: right;">Amount</th>
               </tr>
             </thead>
             <tbody>
               ${order.products.map((product) => `
                 <tr>
-                  <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    ${product.name}${product.gstRate === "non-gst" ? " (Non-GST)" : ""} (${product.quantity}${product.unit}${product.cakeType ? `, ${product.cakeType === 'freshCream' ? 'FC' : 'BC'}` : ''})
+                  <td style="white-space: normal; word-break: break-word; vertical-align: top; padding-right: 10px;">
+                    ${product.name} (${product.quantity}${product.unit}${product.cakeType ? `, ${product.cakeType === 'freshCream' ? 'FC' : 'BC'}` : ''})
                   </td>
-                  <td>${product.quantity}</td>
-                  <td>₹${product.price.toFixed(2)}</td>
-                  <td>₹${product.productTotal.toFixed(2)}</td>
+                  <td style="text-align: right; vertical-align: top; padding-right: 10px;">${product.quantity}</td>
+                  <td style="text-align: right; vertical-align: top; padding-right: 10px;">₹${product.price.toFixed(2)}</td>
+                  <td style="text-align: right; vertical-align: top;">₹${product.productTotal.toFixed(2)}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
           <div class="divider"></div>
           <div class="summary">
-            <div><span>Total Qty: ${totalQty.toFixed(2)}</span><span>Total Amount: ₹${subtotal.toFixed(2)}</span></div>
+            <div><span style="font-weight: bold; font-size: 12px;">Total Qty: ${totalQty.toFixed(2)}</span><span style="font-weight: bold; font-size: 12px;">Total Amount: ₹${subtotal.toFixed(2)}</span></div>
             ${totalGST > 0 ? `
-              <div style="display: flex; justify-content: flex-end;"><span>SGST:</span><span>₹${sgst.toFixed(2)}</span></div>
-              <div style="display: flex; justify-content: flex-end;"><span>CGST:</span><span>₹${cgst.toFixed(2)}</span></div>
+              <div style="display: flex; justify-content: flex-end;"><span style="font-weight: bold; font-size: 12px;">SGST:</span><span style="font-weight: bold; font-size: 12px;">₹${sgst.toFixed(2)}</span></div>
+              <div style="display: flex; justify-content: flex-end;"><span style="font-weight: bold; font-size: 12px;">CGST:</span><span style="font-weight: bold; font-size: 12px;">₹${cgst.toFixed(2)}</span></div>
             ` : ""}
-            <div class="before-grand-total"></div>
-            <div class="grand-total" style="display: flex; justify-content: flex-end;"><span>Grand Total:</span><span>₹${totalWithGSTRounded.toFixed(2)}</span></div>
+            <div class="grand-total">
+              <span>Grand Total:</span>
+              <span>₹${totalWithGSTRounded.toFixed(2)}</span>
+            </div>
           </div>
-          <div class="divider"></div>
           <p class="thank-you">Thank You !! Visit Again</p>
         </body>
       </html>
@@ -661,7 +683,7 @@ const BillingPage = ({ branchId }) => {
     printWindow.document.close();
     printWindow.print();
     printWindow.close();
-  };
+};
 
   const getCardSize = () => {
     if (typeof window === 'undefined') return 200;
