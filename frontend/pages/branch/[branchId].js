@@ -37,7 +37,7 @@ const BillingPage = ({ branchId }) => {
   const [branchInventory, setBranchInventory] = useState([]);
 
   const contentRef = useRef(null);
-  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://apib.dinasuvadu.in';
+  const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -545,32 +545,107 @@ const BillingPage = ({ branchId }) => {
     const { totalQty, subtotal, totalWithGSTRounded } = summary;
     const { sgst, cgst } = summary;
     const totalGST = sgst + cgst; // Calculate total GST to conditionally display GST rows
-    const printWindow = window.open('', '_blank');
     const dateTime = new Date().toLocaleString('en-IN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
     }).replace(',', '');
-
-    printWindow.document.write(`
+  
+    // Create an invisible iframe
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = 'none';
+    document.body.appendChild(iframe);
+  
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`
       <html>
         <head>
           <title>Receipt</title>
           <style>
-            body { font-family: 'Courier New', Courier, monospace; width: 302px; margin: 0; padding: 5px; font-size: 12px; line-height: 1.3; color: #000; font-weight: bold; }
-            h2 { text-align: center; font-size: 16px; font-weight: bold; margin: 0 0 5px 0; color: #000; }
-            .header { display: flex; justify-content: space-between; margin-bottom: 5px; width: 100%; color: #000; font-weight: bold; }
-            .header-left { text-align: left; max-width: 50%; overflow: hidden; text-overflow: ellipsis; color: #000; font-weight: bold; }
-            .header-right { text-align: right; max-width: 50%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #000; font-weight: bold; }
-            p { margin: 2px 0; overflow: hidden; text-overflow: ellipsis; color: #000; font-weight: bold; }
-            table { width: 100%; border-collapse: collapse; margin-top: 5px; color: #000; font-weight: bold; }
-            th, td { padding: 5px 2px; text-align: left; font-size: 12px; color: #000; font-weight: bold; vertical-align: top; }
-            th { font-weight: bold; color: #000; }
-            .divider { border-top: 1px dashed #000; margin: 5px 0; }
-            .summary { margin-top: 5px; color: #000; font-weight: bold; }
+            body { 
+              font-family: 'Courier New', Courier, monospace; 
+              width: 302px; 
+              margin: 0; 
+              padding: 5px; 
+              font-size: 12px; 
+              line-height: 1.3; 
+              color: #000; 
+              font-weight: bold; 
+            }
+            h2 { 
+              text-align: center; 
+              font-size: 16px; 
+              font-weight: bold; 
+              margin: 0 0 5px 0; 
+              color: #000; 
+            }
+            .header { 
+              display: flex; 
+              justify-content: space-between; 
+              margin-bottom: 5px; 
+              width: 100%; 
+              color: #000; 
+              font-weight: bold; 
+            }
+            .header-left { 
+              text-align: left; 
+              max-width: 50%; 
+              overflow: hidden; 
+              text-overflow: ellipsis; 
+              color: #000; 
+              font-weight: bold; 
+            }
+            .header-right { 
+              text-align: right; 
+              max-width: 50%; 
+              white-space: nowrap; 
+              overflow: hidden; 
+              text-overflow: ellipsis; 
+              color: #000; 
+              font-weight: bold; 
+            }
+            p { 
+              margin: 2px 0; 
+              overflow: hidden; 
+              text-overflow: ellipsis; 
+              color: #000; 
+              font-weight: bold; 
+            }
+            table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              margin-top: 5px; 
+              color: #000; 
+              font-weight: bold; 
+            }
+            th, td { 
+              padding: 5px 2px; 
+              text-align: left; 
+              font-size: 12px; 
+              color: #000; 
+              font-weight: bold; 
+              vertical-align: top; 
+            }
+            th { 
+              font-weight: bold; 
+              color: #000; 
+            }
+            .divider { 
+              border-top: 1px dashed #000; 
+              margin: 5px 0; 
+            }
+            .summary { 
+              margin-top: 5px; 
+              color: #000; 
+              font-weight: bold; 
+            }
             .summary div {
               display: flex;
               justify-content: flex-end;
@@ -588,24 +663,24 @@ const BillingPage = ({ branchId }) => {
               margin-right: 5px;
             }
             .grand-total {
-              font-weight: 900; /* Maximum boldness */
-              font-size: 22px; /* Increased font size */
+              font-weight: 900;
+              font-size: 22px;
               color: #000;
               margin-top: 10px;
               padding-top: 5px;
               border-top: 1px dashed #000;
               display: flex;
               justify-content: flex-end;
-              border-bottom: 1px dashed #000; /* Added bottom border */
-              padding-bottom: 5px; /* Added bottom padding */
-              margin-bottom: 10px; /* Added bottom margin */
+              border-bottom: 1px dashed #000;
+              padding-bottom: 5px;
+              margin-bottom: 10px;
             }
             .grand-total span:first-child {
-              font-size: 1.5em; /* Smaller text for "Grand Total:" */
+              font-size: 1.5em;
               margin-right: 5px;
             }
             .grand-total span:last-child {
-              font-size: 1.5em; /* Larger number */
+              font-size: 1.5em;
             }
             .thank-you {
               text-align: center;
@@ -619,12 +694,40 @@ const BillingPage = ({ branchId }) => {
               padding-bottom: 5px;
               margin-bottom: 5px;
             }
-            .item-row { display: flex; width: 100%; }
-            .item-name { flex: 2; word-break: break-word; padding-right: 10px; }
-            .item-qty { flex: 0.7; text-align: right; padding-right: 10px; }
-            .item-price { flex: 1.2; text-align: right; padding-right: 10px; }
-            .item-amount { flex: 1.3; text-align: right; }
-            @media print { @page { margin: 0; size: 80mm auto; } body { margin: 0; padding: 5px; } }
+            .item-row { 
+              display: flex; 
+              width: 100%; 
+            }
+            .item-name { 
+              flex: 2; 
+              word-break: break-word; 
+              padding-right: 10px; 
+            }
+            .item-qty { 
+              flex: 0.7; 
+              text-align: right; 
+              padding-right: 10px; 
+            }
+            .item-price { 
+              flex: 1.2; 
+              text-align: right; 
+              padding-right: 10px; 
+            }
+            .item-amount { 
+              flex: 1.3; 
+              text-align: right; 
+            }
+            @media print { 
+              @page { 
+                margin: 0; 
+                size: 80mm auto; 
+              } 
+              body { 
+                margin: 0; 
+                padding: 5px; 
+                width: 302px; 
+              } 
+            }
           </style>
         </head>
         <body>
@@ -652,25 +755,49 @@ const BillingPage = ({ branchId }) => {
               </tr>
             </thead>
             <tbody>
-              ${order.products.map((product) => `
-                <tr>
-                  <td style="white-space: normal; word-break: break-word; vertical-align: top; padding-right: 10px;">
-                    ${product.name} (${product.quantity}${product.unit}${product.cakeType ? `, ${product.cakeType === 'freshCream' ? 'FC' : 'BC'}` : ''})
-                  </td>
-                  <td style="text-align: right; vertical-align: top; padding-right: 10px;">${product.quantity}</td>
-                  <td style="text-align: right; vertical-align: top; padding-right: 10px;">₹${product.price.toFixed(2)}</td>
-                  <td style="text-align: right; vertical-align: top;">₹${product.productTotal.toFixed(2)}</td>
-                </tr>
-              `).join('')}
+              ${order.products
+                .map(
+                  (product) => `
+                  <tr>
+                    <td style="white-space: normal; word-break: break-word; vertical-align: top; padding-right: 10px;">
+                      ${product.name} (${product.quantity}${product.unit}${
+                    product.cakeType
+                      ? `, ${product.cakeType === 'freshCream' ? 'FC' : 'BC'}`
+                      : ''
+                  })
+                    </td>
+                    <td style="text-align: right; vertical-align: top; padding-right: 10px;">${product.quantity}</td>
+                    <td style="text-align: right; vertical-align: top; padding-right: 10px;">₹${product.price.toFixed(
+                      2
+                    )}</td>
+                    <td style="text-align: right; vertical-align: top;">₹${product.productTotal.toFixed(
+                      2
+                    )}</td>
+                  </tr>
+                `
+                )
+                .join('')}
             </tbody>
           </table>
           <div class="divider"></div>
           <div class="summary">
-            <div><span style="font-weight: bold; font-size: 12px;">Total Qty: ${totalQty.toFixed(2)}</span><span style="font-weight: bold; font-size: 12px;">Total Amount: ₹${subtotal.toFixed(2)}</span></div>
-            ${totalGST > 0 ? `
-              <div style="display: flex; justify-content: flex-end;"><span style="font-weight: bold; font-size: 12px;">SGST:</span><span style="font-weight: bold; font-size: 12px;">₹${sgst.toFixed(2)}</span></div>
-              <div style="display: flex; justify-content: flex-end;"><span style="font-weight: bold; font-size: 12px;">CGST:</span><span style="font-weight: bold; font-size: 12px;">₹${cgst.toFixed(2)}</span></div>
-            ` : ""}
+            <div><span style="font-weight: bold; font-size: 12px;">Total Qty: ${totalQty.toFixed(
+              2
+            )}</span><span style="font-weight: bold; font-size: 12px;">Total Amount: ₹${subtotal.toFixed(
+              2
+            )}</span></div>
+            ${
+              totalGST > 0
+                ? `
+                <div style="display: flex; justify-content: flex-end;"><span style="font-weight: bold; font-size: 12px;">SGST:</span><span style="font-weight: bold; font-size: 12px;">₹${sgst.toFixed(
+                  2
+                )}</span></div>
+                <div style="display: flex; justify-content: flex-end;"><span style="font-weight: bold; font-size: 12px;">CGST:</span><span style="font-weight: bold; font-size: 12px;">₹${cgst.toFixed(
+                  2
+                )}</span></div>
+              `
+                : ''
+            }
             <div class="grand-total">
               <span>Grand Total:</span>
               <span>₹${totalWithGSTRounded.toFixed(2)}</span>
@@ -680,10 +807,24 @@ const BillingPage = ({ branchId }) => {
         </body>
       </html>
     `);
-    printWindow.document.close();
-    printWindow.print();
-    printWindow.close();
-};
+    doc.close();
+  
+    // Focus and print from the iframe
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+  
+    // Clean up: Remove the iframe after printing
+    iframe.contentWindow.onafterprint = () => {
+      document.body.removeChild(iframe);
+    };
+  
+    // Fallback: Remove iframe after a delay if onafterprint doesn't fire
+    setTimeout(() => {
+      if (iframe.parentNode) {
+        document.body.removeChild(iframe);
+      }
+    }, 1000);
+  };
 
   const getCardSize = () => {
     if (typeof window === 'undefined') return 200;
