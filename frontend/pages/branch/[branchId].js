@@ -631,7 +631,7 @@ const BillingPage = ({ branchId }) => {
             }
           </style>
         </head>
-        <body>
+        <body onload="window.print()">
           <h1>${order.branchId?.name || 'Unknown Branch'}</h1>
           <p style="text-align: center;">${order.branchId?.address || 'Address Not Available'}</p>
           <p style="text-align: center;">Phone: ${order.branchId?.phoneNo || 'Phone Not Available'}</p>
@@ -714,15 +714,11 @@ const BillingPage = ({ branchId }) => {
     iframe.contentWindow.focus();
     iframe.contentWindow.print();
   
-    iframe.contentWindow.onafterprint = () => {
-      document.body.removeChild(iframe);
-    };
-  
     setTimeout(() => {
       if (iframe.parentNode) {
         document.body.removeChild(iframe);
       }
-    }, 1000);
+    }, 1000); // Clean up iframe after printing
   };
 
   const getCardSize = () => {
