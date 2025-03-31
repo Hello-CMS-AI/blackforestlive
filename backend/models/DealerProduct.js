@@ -13,9 +13,9 @@ const dealerProductSchema = new mongoose.Schema({
   },
   barcode_no: {
     type: String,
-    required: true,
     trim: true,
-    unique: true,
+    unique: true, // Still unique when provided, but allows null/undefined
+    sparse: true, // Add this to allow multiple documents with no barcode_no
   },
   description: {
     type: String,
@@ -37,7 +37,5 @@ const dealerProductSchema = new mongoose.Schema({
     type: Date,
   },
 });
-
-dealerProductSchema.index({ barcode_no: 1 }, { unique: true });
 
 module.exports = mongoose.model('DealerProduct', dealerProductSchema);

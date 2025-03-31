@@ -140,9 +140,8 @@ const CreateProduct = () => {
               help={errors.barcode_no || ''}
               label={<span style={{ color: '#000000' }}>Barcode No</span>}
               name="barcode_no"
-              rules={[{ required: true, message: 'Please enter the barcode number' }]}
             >
-              <Input placeholder="Enter barcode number" style={{ color: '#000000', background: '#ffffff', borderColor: '#d3d3d3' }} />
+              <Input placeholder="Enter barcode number (optional)" style={{ color: '#000000', background: '#ffffff', borderColor: '#d3d3d3' }} />
             </Form.Item>
 
             <Form.Item

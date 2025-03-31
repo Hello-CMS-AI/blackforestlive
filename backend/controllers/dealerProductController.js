@@ -4,13 +4,17 @@ exports.createDealerProduct = async (req, res) => {
   try {
     const { product_name, category, barcode_no, description, price, stock_quantity } = req.body;
 
-    if (!product_name || !category || !barcode_no) {
-      return res.status(400).json({ message: 'Product name, category, and barcode number are required' });
+    // Updated validation - removed barcode_no from required fields
+    if (!product_name || !category) {
+      return res.status(400).json({ message: 'Product name and category are required' });
     }
 
-    const existingBarcode = await DealerProduct.findOne({ barcode_no });
-    if (existingBarcode) {
-      return res.status(400).json({ message: 'Barcode number already exists' });
+    // Only check for existing barcode if one is provided
+    if (barcode_no) {
+      const existingBarcode = await DealerProduct.findOne({ barcode_no });
+      if (existingBarcode) {
+        return res.status(400).json({ message: 'Barcode number already exists' });
+      }
     }
 
     const existingProduct = await DealerProduct.findOne({ product_name, category });
@@ -21,7 +25,7 @@ exports.createDealerProduct = async (req, res) => {
     const product = new DealerProduct({
       product_name,
       category,
-      barcode_no,
+      barcode_no: barcode_no || undefined, // Explicitly set to undefined if empty
       description,
       price,
       stock_quantity,
@@ -69,13 +73,17 @@ exports.updateDealerProduct = async (req, res) => {
     const { id } = req.params;
     const { product_name, category, barcode_no, description, price, stock_quantity } = req.body;
 
-    if (!product_name || !category || !barcode_no) {
-      return res.status(400).json({ message: 'Product name, category, and barcode number are required' });
+    // Updated validation - removed barcode_no from required fields
+    if (!product_name || !category) {
+      return res.status(400).json({ message: 'Product name and category are required' });
     }
 
-    const existingBarcode = await DealerProduct.findOne({ barcode_no, _id: { $ne: id } });
-    if (existingBarcode) {
-      return res.status(400).json({ message: 'Barcode number already exists' });
+    // Only check for existing barcode if one is provided
+    if (barcode_no) {
+      const existingBarcode = await DealerProduct.findOne({ barcode_no, _id: { $ne: id } });
+      if (existingBarcode) {
+        return res.status(400).json({ message: 'Barcode number already exists' });
+      }
     }
 
     const existingProduct = await DealerProduct.findOne({ product_name, category, _id: { $ne: id } });
@@ -85,7 +93,15 @@ exports.updateDealerProduct = async (req, res) => {
 
     const updatedProduct = await DealerProduct.findByIdAndUpdate(
       id,
-      { product_name, category, barcode_no, description, price, stock_quantity, updated_at: Date.now() },
+      { 
+        product_name, 
+        category, 
+        barcode_no: barcode_no || undefined, // Explicitly set to undefined if empty
+        description, 
+        price, 
+        stock_quantity, 
+        updated_at: Date.now() 
+      },
       { new: true }
     );
 
