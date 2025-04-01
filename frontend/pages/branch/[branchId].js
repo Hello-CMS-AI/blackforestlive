@@ -957,126 +957,217 @@ const BillingPage = ({ branchId }) => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header
+  style={{
+    background: "#000000",
+    padding: "0 20px",
+    color: "#FFFFFF",
+    height: "64px",
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+  }}
+>
+  {/* Left Section */}
+  <div style={{ display: "flex", alignItems: "center" }}>
+    {/* Mobile Navigation on Left */}
+    <div style={{ display: isPortrait || isMobile ? "flex" : "none", alignItems: "center" }}>
+      <Button
+        type="text"
+        icon={<MenuOutlined />}
+        onClick={toggleMobileMenu}
         style={{
-          background: "#000000",
-          padding: "0 20px",
+          fontSize: "18px",
           color: "#FFFFFF",
-          height: "64px",
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+          marginRight: "10px",
         }}
-      >
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <Space align="center">
-            <Dropdown overlay={userMenu} trigger={['click']}>
-              <Button
-                type="text"
-                icon={<UserOutlined />}
-                style={{
-                  fontSize: "16px",
-                  color: "#FFFFFF",
-                }}
-              />
-            </Dropdown>
-            <span style={{ fontSize: "14px", color: "#FFFFFF" }}>
-              {name} |
-            </span>
-          </Space>
-        </div>
+      />
+    </div>
 
-        <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
-          {selectedCategory && (
-            <Input
-              placeholder="Search products by name"
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              style={{
-                width: '100%',
-                maxWidth: '600px',
-                height: '40px',
-                fontSize: '16px',
-                borderRadius: '8px',
-                background: '#fff',
-                color: '#000',
-              }}
-            />
-          )}
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center" }}>
+    {/* Desktop User Info (Unchanged) */}
+    <div style={{ display: isPortrait || isMobile ? "flex" : "flex", alignItems: "center" }}>
+      <Space align="center">
+        <span style={{ fontSize: "14px", color: "#FFFFFF" }}>
+          {name}
+        </span>
+        <Dropdown overlay={userMenu} trigger={['click']}>
           <Button
             type="text"
-            icon={<MenuOutlined />}
-            onClick={toggleMobileMenu}
+            icon={<UserOutlined />}
             style={{
-              display: isPortrait || isMobile ? "block" : "none",
-              fontSize: "18px",
+              fontSize: "16px",
               color: "#FFFFFF",
-              marginRight: "10px",
             }}
           />
-          <div
+        </Dropdown>
+      </Space>
+    </div>
+  </div>
+
+  {/* Desktop Center Section with Search Bar (Unchanged) */}
+  <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+    {selectedCategory && !(isPortrait || isMobile) && (
+      <Input
+        placeholder="Search products by name"
+        value={searchQuery}
+        onChange={(e) => handleSearch(e.target.value)}
+        style={{
+          width: '100%',
+          maxWidth: '600px',
+          height: '40px',
+          fontSize: '16px',
+          borderRadius: '8px',
+          background: '#fff',
+          color: '#000',
+        }}
+      />
+    )}
+  </div>
+
+  {/* Right Section */}
+  <div style={{ display: "flex", alignItems: "center" }}>
+    {/* Mobile Cart on Right */}
+    <div style={{ display: isPortrait || isMobile ? "flex" : "none", alignItems: "center" }}>
+      <Badge count={selectedProducts.length} showZero>
+        <Button
+          type="text"
+          icon={<ShoppingCartOutlined />}
+          onClick={handleCartToggle}
+          style={{
+            fontSize: "24px",
+            color: "#FFFFFF",
+            marginRight: "10px",
+          }}
+        />
+      </Badge>
+    </div>
+
+    {/* Desktop Version (Unchanged) */}
+    <div
+      style={{
+        display: isPortrait || isMobile ? "none" : "flex",
+        alignItems: "center",
+      }}
+    >
+      <Space align="center">
+        <Button
+          type={selectedProductType === null ? "primary" : "text"}
+          onClick={() => handleProductTypeFilter(null)}
+          style={{ color: "#FFFFFF", marginRight: '10px' }}
+        >
+          All
+        </Button>
+        <Button
+          type={selectedProductType === 'cake' ? "primary" : "text"}
+          onClick={() => handleProductTypeFilter('cake')}
+          style={{ color: "#FFFFFF", marginRight: '10px' }}
+        >
+          Cake
+        </Button>
+        <Button
+          type={selectedProductType === 'non-cake' ? "primary" : "text"}
+          onClick={() => handleProductTypeFilter('non-cake')}
+          style={{ color: "#FFFFFF", marginRight: '10px' }}
+        >
+          Non-Cake
+        </Button>
+        <Badge count={selectedProducts.length} showZero>
+          <Button
+            type="text"
+            icon={<ShoppingCartOutlined />}
+            onClick={handleCartToggle}
             style={{
-              display: isPortrait || isMobile ? "none" : "flex",
-              alignItems: "center",
+              fontSize: "24px",
+              color: "#FFFFFF",
+              marginRight: '10px',
             }}
-          >
-            <Space align="center">
-              <Button
-                type={selectedProductType === null ? "primary" : "text"}
-                onClick={() => handleProductTypeFilter(null)}
-                style={{ color: "#FFFFFF", marginRight: '10px' }}
-              >
-                All
-              </Button>
-              <Button
-                type={selectedProductType === 'cake' ? "primary" : "text"}
-                onClick={() => handleProductTypeFilter('cake')}
-                style={{ color: "#FFFFFF", marginRight: '10px' }}
-              >
-                Cake
-              </Button>
-              <Button
-                type={selectedProductType === 'non-cake' ? "primary" : "text"}
-                onClick={() => handleProductTypeFilter('non-cake')}
-                style={{ color: "#FFFFFF", marginRight: '10px' }}
-              >
-                Non-Cake
-              </Button>
-              <Badge count={selectedProducts.length} showZero>
-                <Button
-                  type="text"
-                  icon={<ShoppingCartOutlined />}
-                  onClick={handleCartToggle}
-                  style={{
-                    fontSize: "24px",
-                    color: "#FFFFFF",
-                    marginRight: '10px',
-                  }}
-                />
-              </Badge>
-              <Button
-                type="text"
-                icon={<LogoutOutlined />}
-                onClick={handleLogout}
-                style={{
-                  fontSize: "16px",
-                  color: "#FFFFFF",
-                }}
-              >
-                Logout
-              </Button>
-            </Space>
-          </div>
-        </div>
-      </Header>
+          />
+        </Badge>
+        <Button
+          type="text"
+          icon={<LogoutOutlined />}
+          onClick={handleLogout}
+          style={{
+            fontSize: "16px",
+            color: "#FFFFFF",
+          }}
+        >
+          Logout
+        </Button>
+      </Space>
+    </div>
+  </div>
+
+  {/* Mobile Navigation Drawer */}
+  {isMobileMenuOpen && (isPortrait || isMobile) && (
+    <div
+      style={{
+        position: "fixed",
+        top: "64px",
+        left: 0,
+        width: "100%",
+        background: "#FFFFFF",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+        zIndex: 999,
+        padding: "10px 20px",
+        color: "#000000",
+      }}
+    >
+      <Space direction="vertical" style={{ width: "100%" }}>
+        <Button
+          type={selectedProductType === null ? "primary" : "text"}
+          onClick={() => {
+            handleProductTypeFilter(null);
+            toggleMobileMenu(); // Close menu after selection
+          }}
+          style={{ width: "100%", textAlign: "left", color: selectedProductType === null ? "#FFFFFF" : "#000000" }}
+        >
+          All
+        </Button>
+        <Button
+          type={selectedProductType === 'cake' ? "primary" : "text"}
+          onClick={() => {
+            handleProductTypeFilter('cake');
+            toggleMobileMenu(); // Close menu after selection
+          }}
+          style={{ width: "100%", textAlign: "left", color: selectedProductType === 'cake' ? "#FFFFFF" : "#000000" }}
+        >
+          Cake
+        </Button>
+        <Button
+          type={selectedProductType === 'non-cake' ? "primary" : "text"}
+          onClick={() => {
+            handleProductTypeFilter('non-cake');
+            toggleMobileMenu(); // Close menu after selection
+          }}
+          style={{ width: "100%", textAlign: "left", color: selectedProductType === 'non-cake' ? "#FFFFFF" : "#000000" }}
+        >
+          Non-Cake
+        </Button>
+        <Button
+          type="text"
+          icon={<LogoutOutlined />}
+          onClick={() => {
+            handleLogout();
+            toggleMobileMenu(); // Close menu after logout
+          }}
+          style={{
+            width: "100%",
+            textAlign: "left",
+            color: "#000000",
+          }}
+        >
+          Logout
+        </Button>
+      </Space>
+    </div>
+  )}
+</Header>
 
       <Layout style={{ flex: 1, marginTop: '64px' }}>
         <Content
