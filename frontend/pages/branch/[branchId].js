@@ -482,14 +482,23 @@ const BillingPage = ({ branchId }) => {
       ? `${order.waiterId.name}${order.waiterId.employeeId ? ` (${order.waiterId.employeeId})` : ''}`
       : 'Not Assigned';
   
-    const printContent = `
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'absolute';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = 'none';
+    document.body.appendChild(iframe);
+  
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`
       <html>
         <head>
           <title>Receipt</title>
           <style>
             body { 
               font-family: 'Courier New', Courier, monospace; 
-              width: 640px; /* Adjusted for 80mm at 203 DPI */
+              width: 302px; 
               margin: 0; 
               padding: 5px; 
               font-size: 12px; 
@@ -504,7 +513,122 @@ const BillingPage = ({ branchId }) => {
               margin: 0 0 3px 0; 
               color: #000; 
             }
-            /* Rest of your CSS */
+            .header { 
+              display: flex; 
+              justify-content: space-between; 
+              margin-bottom: 5px; 
+              width: 100%; 
+              color: #000; 
+              font-weight: bold; 
+            }
+            .header-left { 
+              text-align: left; 
+              max-width: 50%; 
+              overflow: hidden; 
+              text-overflow: ellipsis; 
+              color: #000; 
+              font-weight: bold; 
+            }
+            .header-right { 
+              text-align: right; 
+              max-width: 50%; 
+              color: #000; 
+              font-weight: bold; 
+            }
+            .header-right p.waiter { 
+              white-space: normal; 
+              overflow: visible; 
+              text-overflow: clip; 
+            }
+            p { 
+              margin: 2px 0; 
+              overflow: hidden; 
+              text-overflow: ellipsis; 
+              color: #000; 
+              font-weight: bold; 
+            }
+            table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              margin-top: 5px; 
+              color: #000; 
+              font-weight: bold; 
+            }
+            th, td { 
+              padding: 5px 2px; 
+              text-align: left; 
+              font-size: 12px; 
+              color: #000; 
+              font-weight: bold; 
+              vertical-align: top; 
+            }
+            th { 
+              font-weight: bold; 
+              color: #000; 
+            }
+            .divider { 
+              border-top: 1px dashed #000; 
+              margin: 5px 0; 
+            }
+            .summary { 
+              margin-top: 5px; 
+              color: #000; 
+              font-weight: bold; 
+            }
+            .summary div {
+              display: flex;
+              justify-content: flex-end;
+              white-space: nowrap;
+              color: #000;
+              font-weight: bold;
+              font-size: 12px;
+            }
+            .summary div span {
+              color: #000;
+              font-weight: bold;
+              font-size: 12px;
+            }
+            .summary div span:first-child {
+              margin-right: 5px;
+            }
+            .grand-total {
+              font-weight: 900;
+              font-size: 22px;
+              color: #000;
+              margin-top: 10px;
+              padding-top: 5px;
+              border-top: 1px dashed #000;
+              display: flex;
+              justify-content: flex-end;
+              border-bottom: 1px dashed #000;
+              padding-bottom: 5px;
+              margin-bottom: 10px;
+            }
+            .grand-total span:first-child {
+              font-size: 1.5em;
+              margin-right: 5px;
+            }
+            .grand-total span:last-child {
+              font-size: 1.5em;
+            }
+            .thank-you {
+              text-align: center;
+              margin-top: 10px;
+              color: #000;
+              font-weight: bold;
+              font-size: 14px;
+            }
+            @media print { 
+              @page { 
+                margin: 0; 
+                size: 80mm auto; 
+              } 
+              body { 
+                margin: 0; 
+                padding: 5px; 
+                width: 302px; 
+              } 
+            }
           </style>
         </head>
         <body>
@@ -584,40 +708,11 @@ const BillingPage = ({ branchId }) => {
           <p class="thank-you">Thank You !! Visit Again</p>
         </body>
       </html>
-    `;
-  
-    // Try printing via iframe
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'absolute';
-    iframe.style.width = '0';
-    iframe.style.height = '0';
-    iframe.style.border = 'none';
-    document.body.appendChild(iframe);
-  
-    const doc = iframe.contentWindow.document;
-    doc.open();
-    doc.write(printContent);
+    `);
     doc.close();
   
     iframe.contentWindow.focus();
-    try {
-      iframe.contentWindow.print();
-      console.log("Print triggered via iframe");
-    } catch (error) {
-      console.error("Iframe print error:", error);
-      message.error("Failed to print via iframe. Trying alternative method...");
-      // Fallback: Open in a new window
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(printContent);
-        printWindow.document.close();
-        printWindow.focus();
-        printWindow.print();
-        printWindow.close();
-      } else {
-        message.error("Failed to open print window. Please try printing manually.");
-      }
-    }
+    iframe.contentWindow.print();
   
     iframe.contentWindow.onafterprint = () => {
       document.body.removeChild(iframe);
