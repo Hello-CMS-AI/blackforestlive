@@ -155,7 +155,5 @@ const CreateDealer = () => {
   );
 };
 
-// Opt out of Layout component
-CreateDealer.useLayout = false;
 
 export default CreateDealer;

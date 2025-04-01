@@ -134,7 +134,5 @@ const DealerList = () => {
   );
 };
 
-// Opt out of Layout component
-DealerList.useLayout = false;
 
 export default DealerList;

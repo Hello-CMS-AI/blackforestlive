@@ -229,340 +229,347 @@ const CategoryDashboard = () => {
     </Menu>
   );
 
-  return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header
-        style={{
-          background: "#000000",
-          padding: "0 20px",
-          color: "#FFFFFF",
-          height: "64px",
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <Space align="center">
-            <Dropdown overlay={userMenu} trigger={['click']}>
-              <Button
-                type="text"
-                icon={<UserOutlined />}
-                style={{ fontSize: "16px", color: "#FFFFFF" }}
-              />
-            </Dropdown>
-            <span style={{ fontSize: "14px", color: "#FFFFFF" }}>
-              {userName} | {branchName}
-            </span>
-          </Space>
-        </div>
-        <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}></div>
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <Button
-            type="text"
-            icon={<LogoutOutlined />}
-            onClick={handleLogout}
-            style={{ fontSize: "16px", color: "#FFFFFF" }}
-          >
-            Logout
-          </Button>
-        </div>
-      </Header>
-
-      <div
-        style={{
-          padding: '40px 20px',
-          background: 'linear-gradient(to bottom, #f0f2f5, #e6e9f0)',
-          minHeight: 'calc(100vh - 64px)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'flex-start',
-          marginTop: '64px',
-        }}
-      >
-        <div style={{ maxWidth: '1200px', width: '100%' }}>
-          <Title
-            level={2}
-            style={{
-              marginBottom: '40px',
-              color: '#1a3042',
-              fontWeight: 'bold',
-              textAlign: 'center',
-            }}
-          >
-            Entry Dashboard
-          </Title>
-
-          {/* Single Grid for All Cards */}
-          <Row gutter={[24, 24]} justify="center">
-            {/* Billing Card */}
-            <Col xs={24} sm={12} md={6}>
-              <Card
-                title="Billing"
-                headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
-                style={{
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  textAlign: 'center',
-                  height: '200px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                }}
-                bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Button
-                  type="default"
-                  size="large"
-                  icon={<ShopOutlined />}
-                  onClick={handleBillingClick}
-                  style={{ width: '150px' }}
-                >
-                  Billing
-                </Button>
-              </Card>
-            </Col>
-
-            {/* StockEntry Card */}
-            <Col xs={24} sm={12} md={6}>
-              <Card
-                title="Stock Entry"
-                headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
-                style={{
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  textAlign: 'center',
-                  height: '200px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                }}
-                bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Dropdown overlay={stockMenu} trigger={['click']}>
-                  <Button
-                    type="default"
-                    size="large"
-                    icon={<StockOutlined />}
-                    style={{ width: '150px' }}
-                  >
-                    Actions <DownOutlined />
-                  </Button>
-                </Dropdown>
-              </Card>
-            </Col>
-
-            {/* BillEntry Card */}
-            <Col xs={24} sm={12} md={6}>
-              <Card
-                title="Bill Entry"
-                headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
-                style={{
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  textAlign: 'center',
-                  height: '200px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                }}
-                bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Dropdown overlay={billMenu} trigger={['click']}>
-                  <Button
-                    type="default"
-                    size="large"
-                    icon={<FileTextOutlined />}
-                    style={{ width: '150px' }}
-                  >
-                    Actions <DownOutlined />
-                  </Button>
-                </Dropdown>
-              </Card>
-            </Col>
-
-            {/* ClosingEntry Card */}
-            <Col xs={24} sm={12} md={6}>
-              <Card
-                title="Closing Entry"
-                headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
-                style={{
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  textAlign: 'center',
-                  height: '200px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                }}
-                bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Dropdown overlay={closingMenu} trigger={['click']}>
-                  <Button
-                    type="default"
-                    size="large"
-                    icon={<FileDoneOutlined />}
-                    style={{ width: '150px' }}
-                  >
-                    Actions <DownOutlined />
-                  </Button>
-                </Dropdown>
-              </Card>
-            </Col>
-
-            {/* ExpenseEntry Card */}
-            <Col xs={24} sm={12} md={6}>
-              <Card
-                title="Expense Entry"
-                headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
-                style={{
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  textAlign: 'center',
-                  height: '200px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                }}
-                bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Button
-                  type="default"
-                  size="large"
-                  icon={<DollarOutlined />}
-                  href="/dealers/expense/ExpenseEntry"
-                  style={{ width: '150px' }}
-                >
-                  Expense Entry
-                </Button>
-              </Card>
-            </Col>
-
-            {/* Financial Management Card */}
-            <Col xs={24} sm={12} md={6}>
-              <Card
-                title="Financial Management"
-                headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
-                style={{
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  textAlign: 'center',
-                  height: '200px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                }}
-                bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Button
-                  type="default"
-                  size="large"
-                  icon={<BankOutlined />}
-                  href="/FinancialManagement"
-                  style={{ width: '150px' }}
-                >
-                  Finance
-                </Button>
-              </Card>
-            </Col>
-
-            {/* Dealers Card */}
-            <Col xs={24} sm={12} md={6}>
-              <Card
-                title="Dealers"
-                headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
-                style={{
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  textAlign: 'center',
-                  height: '200px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                }}
-                bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Dropdown overlay={dealersMenu} trigger={['click']}>
-                  <Button
-                    type="default"
-                    size="large"
-                    icon={<UserOutlined />}
-                    style={{ width: '150px' }}
-                  >
-                    Actions <DownOutlined />
-                  </Button>
-                </Dropdown>
-              </Card>
-            </Col>
-
-            {/* Products Card */}
-            <Col xs={24} sm={12} md={6}>
-              <Card
-                title="Products"
-                headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
-                style={{
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  textAlign: 'center',
-                  height: '200px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                }}
-                bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Dropdown overlay={productsMenu} trigger={['click']}>
-                  <Button
-                    type="default"
-                    size="large"
-                    icon={<ShoppingOutlined />}
-                    style={{ width: '150px' }}
-                  >
-                    Actions <DownOutlined />
-                  </Button>
-                </Dropdown>
-              </Card>
-            </Col>
-
-            {/* Category Card */}
-            <Col xs={24} sm={12} md={6}>
-              <Card
-                title="Category"
-                headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
-                style={{
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  textAlign: 'center',
-                  height: '200px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                }}
-                bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Dropdown overlay={categoryMenu} trigger={['click']}>
-                  <Button
-                    type="default"
-                    size="large"
-                    icon={<TagsOutlined />}
-                    style={{ width: '150px' }}
-                  >
-                    Actions <DownOutlined />
-                  </Button>
-                </Dropdown>
-              </Card>
-            </Col>
-          </Row>
-        </div>
+  
+return (
+  <Layout style={{ minHeight: '100vh' }}>
+    {/* Header remains unchanged */}
+    <Header
+      style={{
+        background: "#000000",
+        padding: "0 20px",
+        color: "#FFFFFF",
+        height: "64px",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+      }}
+    >
+      {/* Header content remains unchanged */}
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <Space align="center">
+          <Dropdown overlay={userMenu} trigger={['click']}>
+            <Button
+              type="text"
+              icon={<UserOutlined />}
+              style={{ fontSize: "16px", color: "#FFFFFF" }}
+            />
+          </Dropdown>
+          <span style={{ fontSize: "14px", color: "#FFFFFF" }}>
+            {userName} | {branchName}
+          </span>
+        </Space>
       </div>
-    </Layout>
-  );
+      <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}></div>
+      <div style={{ display: "flex", alignItems: "center" }}>
+        <Button
+          type="text"
+          icon={<LogoutOutlined />}
+          onClick={handleLogout}
+          style={{ fontSize: "16px", color: "#FFFFFF" }}
+        >
+          Logout
+        </Button>
+      </div>
+    </Header>
+
+    <div
+      style={{
+        padding: '40px 20px',
+        background: 'linear-gradient(to-bottom, #f0f2f5, #e6e9f0)',
+        minHeight: 'calc(100vh - 64px)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        marginTop: '64px',
+      }}
+    >
+      <div style={{ maxWidth: '1200px', width: '100%' }}>
+        <Title
+          level={2}
+          style={{
+            marginBottom: '40px',
+            color: '#1a3042',
+            fontWeight: 'bold',
+            textAlign: 'center',
+          }}
+        >
+          Entry Dashboard
+        </Title>
+
+        <Row gutter={[24, 24]} justify="center">
+          {/* Billing Card - Always shown */}
+          <Col xs={24} sm={12} md={6}>
+            <Card
+              title="Billing"
+              headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
+              style={{
+                borderRadius: '12px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                textAlign: 'center',
+                height: '200px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+              bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Button
+                type="default"
+                size="large"
+                icon={<ShopOutlined />}
+                onClick={handleBillingClick}
+                style={{ width: '150px' }}
+              >
+                Billing
+              </Button>
+            </Card>
+          </Col>
+
+          {/* Stock Entry Card - Always shown */}
+          <Col xs={24} sm={12} md={6}>
+            <Card
+              title="Stock Entry"
+              headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
+              style={{
+                borderRadius: '12px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                textAlign: 'center',
+                height: '200px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+              bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Dropdown overlay={stockMenu} trigger={['click']}>
+                <Button
+                  type="default"
+                  size="large"
+                  icon={<StockOutlined />}
+                  style={{ width: '150px' }}
+                >
+                  Actions <DownOutlined />
+                </Button>
+              </Dropdown>
+            </Card>
+          </Col>
+
+          {/* Bill Entry Card - Always shown */}
+          <Col xs={24} sm={12} md={6}>
+            <Card
+              title="Bill Entry"
+              headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
+              style={{
+                borderRadius: '12px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                textAlign: 'center',
+                height: '200px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+              bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Dropdown overlay={billMenu} trigger={['click']}>
+                <Button
+                  type="default"
+                  size="large"
+                  icon={<FileTextOutlined />}
+                  style={{ width: '150px' }}
+                >
+                  Actions <DownOutlined />
+                </Button>
+              </Dropdown>
+            </Card>
+          </Col>
+
+          {/* Closing Entry Card - Always shown */}
+          <Col xs={24} sm={12} md={6}>
+            <Card
+              title="Closing Entry"
+              headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
+              style={{
+                borderRadius: '12px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                textAlign: 'center',
+                height: '200px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+              bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Dropdown overlay={closingMenu} trigger={['click']}>
+                <Button
+                  type="default"
+                  size="large"
+                  icon={<FileDoneOutlined />}
+                  style={{ width: '150px' }}
+                >
+                  Actions <DownOutlined />
+                </Button>
+              </Dropdown>
+            </Card>
+          </Col>
+
+          {/* Expense Entry Card - Always shown */}
+          <Col xs={24} sm={12} md={6}>
+            <Card
+              title="Expense Entry"
+              headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
+              style={{
+                borderRadius: '12px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                textAlign: 'center',
+                height: '200px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+              }}
+              bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Button
+                type="default"
+                size="large"
+                icon={<DollarOutlined />}
+                href="/dealers/expense/ExpenseEntry"
+                style={{ width: '150px' }}
+              >
+                Expense Entry
+              </Button>
+            </Card>
+          </Col>
+
+          {/* Show following cards only when userName is "Factory" */}
+          {userName === "Factory" && (
+            <>
+              {/* Financial Management Card */}
+              <Col xs={24} sm={12} md={6}>
+                <Card
+                  title="Financial Management"
+                  headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
+                  style={{
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    textAlign: 'center',
+                    height: '200px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                  bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Button
+                    type="default"
+                    size="large"
+                    icon={<BankOutlined />}
+                    href="/FinancialManagement"
+                    style={{ width: '150px' }}
+                  >
+                    Finance
+                  </Button>
+                </Card>
+              </Col>
+
+              {/* Dealers Card */}
+              <Col xs={24} sm={12} md={6}>
+                <Card
+                  title="Dealers"
+                  headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
+                  style={{
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    textAlign: 'center',
+                    height: '200px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                  bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Dropdown overlay={dealersMenu} trigger={['click']}>
+                    <Button
+                      type="default"
+                      size="large"
+                      icon={<UserOutlined />}
+                      style={{ width: '150px' }}
+                    >
+                      Actions <DownOutlined />
+                    </Button>
+                  </Dropdown>
+                </Card>
+              </Col>
+
+              {/* Products Card */}
+              <Col xs={24} sm={12} md={6}>
+                <Card
+                  title="Products"
+                  headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
+                  style={{
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    textAlign: 'center',
+                    height: '200px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                  bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Dropdown overlay={productsMenu} trigger={['click']}>
+                    <Button
+                      type="default"
+                      size="large"
+                      icon={<ShoppingOutlined />}
+                      style={{ width: '150px' }}
+                    >
+                      Actions <DownOutlined />
+                    </Button>
+                  </Dropdown>
+                </Card>
+              </Col>
+
+              {/* Category Card */}
+              <Col xs={24} sm={12} md={6}>
+                <Card
+                  title="Category"
+                  headStyle={{ background: '#e6e9f0', fontWeight: 'bold', color: '#1a3042' }}
+                  style={{
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    textAlign: 'center',
+                    height: '200px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                  }}
+                  bodyStyle={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Dropdown overlay={categoryMenu} trigger={['click']}>
+                    <Button
+                      type="default"
+                      size="large"
+                      icon={<TagsOutlined />}
+                      style={{ width: '150px' }}
+                    >
+                      Actions <DownOutlined />
+                    </Button>
+                  </Dropdown>
+                </Card>
+              </Col>
+            </>
+          )}
+        </Row>
+      </div>
+    </div>
+  </Layout>
+);
 };
 
 CategoryDashboard.useLayout = false;

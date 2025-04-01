@@ -244,7 +244,4 @@ const EditProduct = () => {
   );
 };
 
-// Opt out of Layout component
-EditProduct.useLayout = false;
-
 export default EditProduct;

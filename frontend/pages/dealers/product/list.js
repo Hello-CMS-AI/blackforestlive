@@ -137,7 +137,5 @@ const ProductList = () => {
   );
 };
 
-// Opt out of Layout component
-ProductList.useLayout = false;
 
 export default ProductList;

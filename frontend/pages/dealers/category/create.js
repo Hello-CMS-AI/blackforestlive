@@ -147,7 +147,4 @@ const CreateDealerCategory = () => {
   );
 };
 
-// Opt out of Layout component
-CreateDealerCategory.useLayout = false;
-
 export default CreateDealerCategory;

@@ -19,7 +19,7 @@ const LoginPage = () => {
         localStorage.setItem('token', data.token); // Store JWT
         switch (data.role) {
           case 'branch':
-            router.push('/branch/account');
+            router.push(`/branch/${data.branchId}`);
             break;
           case 'superadmin':
             router.push('/dashboard');

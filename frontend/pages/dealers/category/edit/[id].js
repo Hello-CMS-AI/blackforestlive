@@ -170,7 +170,4 @@ const EditDealerCategory = () => {
   );
 };
 
-// Opt out of Layout component
-EditDealerCategory.useLayout = false;
-
 export default EditDealerCategory;

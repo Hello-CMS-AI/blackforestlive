@@ -135,7 +135,5 @@ const DealerCategoryList = () => {
   );
 };
 
-// Opt out of Layout component
-DealerCategoryList.useLayout = false;
 
 export default DealerCategoryList;
