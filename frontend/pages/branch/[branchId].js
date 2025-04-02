@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Layout, Button, Space, Row, Col, message, Image, Radio, Badge, Tooltip, Select, Dropdown, Menu, Input } from "antd";
-import { LogoutOutlined, ShoppingCartOutlined, MenuOutlined, ArrowLeftOutlined, CheckCircleFilled, PlusOutlined, MinusOutlined, CloseOutlined, WalletOutlined, CreditCardOutlined, SaveOutlined, PrinterOutlined, UserOutlined } from "@ant-design/icons";
+import { LogoutOutlined,AccountBookFilled, ShoppingCartOutlined, MenuOutlined, ArrowLeftOutlined, CheckCircleFilled, PlusOutlined, MinusOutlined, CloseOutlined, WalletOutlined, CreditCardOutlined, SaveOutlined, PrinterOutlined, UserOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import { jwtDecode as jwtDecodeLib } from "jwt-decode";
 
@@ -956,7 +956,7 @@ const BillingPage = ({ branchId }) => {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Header
+   <Header
   style={{
     background: "#000000",
     padding: "0 20px",
@@ -989,8 +989,8 @@ const BillingPage = ({ branchId }) => {
       />
     </div>
 
-    {/* Desktop User Info (Unchanged) */}
-    <div style={{ display: isPortrait || isMobile ? "flex" : "flex", alignItems: "center" }}>
+    {/* User Info */}
+    <div style={{ display: "flex", alignItems: "center" }}>
       <Space align="center">
         <span style={{ fontSize: "14px", color: "#FFFFFF" }}>
           {name}
@@ -1002,14 +1002,29 @@ const BillingPage = ({ branchId }) => {
             style={{
               fontSize: "16px",
               color: "#FFFFFF",
+              padding: "0 10px",
             }}
-          />
+          >
+            {isPortrait || isMobile ? null : "Manager"}
+          </Button>
         </Dropdown>
+        <Button
+          type="text"
+          icon={<AccountBookFilled />}
+          onClick={() => router.push('/branch/account')}
+          style={{
+            fontSize: "16px",
+            color: "#FFFFFF",
+            padding: "0 10px",
+          }}
+        >
+          {isPortrait || isMobile ? null : "Account"}
+        </Button>
       </Space>
     </div>
   </div>
 
-  {/* Desktop Center Section with Search Bar (Unchanged) */}
+  {/* Desktop Center Section with Search Bar */}
   <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
     {selectedCategory && !(isPortrait || isMobile) && (
       <Input
@@ -1047,7 +1062,7 @@ const BillingPage = ({ branchId }) => {
       </Badge>
     </div>
 
-    {/* Desktop Version (Unchanged) */}
+    {/* Desktop Version */}
     <div
       style={{
         display: isPortrait || isMobile ? "none" : "flex",
@@ -1123,7 +1138,7 @@ const BillingPage = ({ branchId }) => {
           type={selectedProductType === null ? "primary" : "text"}
           onClick={() => {
             handleProductTypeFilter(null);
-            toggleMobileMenu(); // Close menu after selection
+            toggleMobileMenu();
           }}
           style={{ width: "100%", textAlign: "left", color: selectedProductType === null ? "#FFFFFF" : "#000000" }}
         >
@@ -1133,7 +1148,7 @@ const BillingPage = ({ branchId }) => {
           type={selectedProductType === 'cake' ? "primary" : "text"}
           onClick={() => {
             handleProductTypeFilter('cake');
-            toggleMobileMenu(); // Close menu after selection
+            toggleMobileMenu();
           }}
           style={{ width: "100%", textAlign: "left", color: selectedProductType === 'cake' ? "#FFFFFF" : "#000000" }}
         >
@@ -1143,7 +1158,7 @@ const BillingPage = ({ branchId }) => {
           type={selectedProductType === 'non-cake' ? "primary" : "text"}
           onClick={() => {
             handleProductTypeFilter('non-cake');
-            toggleMobileMenu(); // Close menu after selection
+            toggleMobileMenu();
           }}
           style={{ width: "100%", textAlign: "left", color: selectedProductType === 'non-cake' ? "#FFFFFF" : "#000000" }}
         >
@@ -1154,7 +1169,7 @@ const BillingPage = ({ branchId }) => {
           icon={<LogoutOutlined />}
           onClick={() => {
             handleLogout();
-            toggleMobileMenu(); // Close menu after logout
+            toggleMobileMenu();
           }}
           style={{
             width: "100%",
