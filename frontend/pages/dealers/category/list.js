@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 const DealerCategoryList = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false); // State for responsive design
   const router = useRouter();
 
   // Fetch categories from the backend
@@ -53,21 +54,93 @@ const DealerCategoryList = () => {
     }
   };
 
+  // Detect screen size on the client side to avoid SSR issues
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== 'undefined') {
+        setIsMobile(window.innerWidth <= 768);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     fetchCategories();
   }, []);
 
-  // Define table columns
+  // Desktop columns with Serial No, removed Description and Created At, bold Category Name
   const columns = [
-    { title: 'Category Name', dataIndex: 'category_name', key: 'category_name', ellipsis: true },
-    { title: 'Description', dataIndex: 'description', key: 'description', ellipsis: true },
+    {
+      title: 'S.No',
+      key: 'serial_no',
+      width: '10%',
+      render: (text, record, index) => index + 1,
+    },
+    {
+      title: 'Category Name',
+      dataIndex: 'category_name',
+      key: 'category_name',
+      width: '40%',
+      ellipsis: true,
+      render: (text) => <span style={{ fontWeight: 'bold' }}>{text}</span>, // Bold Category Name
+    },
     {
       title: 'Parent Category',
       dataIndex: 'parent_category',
       key: 'parent_category',
+      width: '40%',
       render: (parent) => (parent ? parent.category_name : '-'),
     },
-    { title: 'Created At', dataIndex: 'created_at', key: 'created_at', render: (text) => new Date(text).toLocaleString() },
+    {
+      title: 'Action',
+      key: 'action',
+      width: '10%',
+      render: (_, record) => (
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <Button
+            type="link"
+            icon={<EditFilled />}
+            style={{ color: '#1890ff', padding: '0 8px' }}
+            onClick={() => router.push(`/dealers/category/edit/${record._id}`)}
+          />
+          <Popconfirm
+            title="Are you sure you want to delete this category?"
+            onConfirm={() => handleDelete(record._id)}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button
+              type="link"
+              icon={<DeleteFilled />}
+              style={{ color: '#ff4d4f', padding: '0 8px' }}
+            />
+          </Popconfirm>
+        </div>
+      ),
+    },
+  ];
+
+  // Mobile columns with Serial No, removed Description and Created At, bold Category Name
+  const mobileColumns = [
+    {
+      title: 'S.No',
+      key: 'serial_no',
+      width: '20%',
+      render: (text, record, index) => index + 1,
+    },
+    {
+      title: 'Category Info',
+      key: 'category_info',
+      render: (_, record) => (
+        <div>
+          <strong>{record.category_name}</strong><br />
+          Parent: {record.parent_category ? record.parent_category.category_name : '-'}
+        </div>
+      ),
+    },
     {
       title: 'Action',
       key: 'action',
@@ -99,12 +172,28 @@ const DealerCategoryList = () => {
   return (
     <div style={{ background: '#f5f5f5', minHeight: '100vh', padding: '20px' }}>
       <Row justify="center" align="middle" style={{ minHeight: '100vh' }}>
-        <Col xs={24} sm={24} md={24} lg={22} xl={20}>
-          <h1 style={{ color: '#000000', textAlign: 'center', marginBottom: '30px', fontSize: '24px', fontWeight: 'bold' }}>
+        <Col xs={24} sm={24} md={24} lg={24} xl={24}> {/* Maximized table size */}
+          <h1 style={{ 
+            color: '#000000', 
+            textAlign: 'center', 
+            marginBottom: '30px', 
+            fontSize: '24px', 
+            fontWeight: 'bold' 
+          }}>
             Dealer Category List
           </h1>
-          <div style={{ background: '#ffffff', padding: '30px', borderRadius: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', width: '100%' }}>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+          <div style={{ 
+            background: '#ffffff', 
+            padding: '40px', // Increased padding for larger appearance
+            borderRadius: '10px', 
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)', 
+            width: '100%' 
+          }}>
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'flex-end', 
+              marginBottom: '20px' 
+            }}>
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
@@ -119,14 +208,23 @@ const DealerCategoryList = () => {
               </Button>
             </div>
             <Table
-              columns={columns}
+              columns={isMobile ? mobileColumns : columns}
               dataSource={categories}
               loading={loading}
               rowKey="_id"
-              pagination={{ pageSize: 5, showSizeChanger: true, style: { marginTop: '20px', textAlign: 'center' } }}
-              scroll={{ x: 'max-content' }}
+              pagination={{ 
+                pageSize: 50, // Increased to 50 items per page
+                defaultPageSize: 50,
+                showSizeChanger: true, 
+                pageSizeOptions: ['10', '20', '50', '100'],
+                style: { marginTop: '20px', textAlign: 'center' } 
+              }}
               style={{ width: '100%' }}
-              tableLayout="auto"
+              tableLayout="fixed"
+              scroll={{ x: false }} // Remove horizontal scroll
+              responsive={['xs', 'sm', 'md', 'lg', 'xl']}
+              bordered // Add borders for rows
+              className="custom-table" // Custom class for column lines
             />
           </div>
         </Col>
@@ -135,5 +233,26 @@ const DealerCategoryList = () => {
   );
 };
 
+// Add custom CSS for column lines
+const styles = `
+  .custom-table .ant-table-thead > tr > th {
+    border-right: 1px solid #f0f0f0;
+  }
+  .custom-table .ant-table-tbody > tr > td {
+    border-right: 1px solid #f0f0f0;
+  }
+  .custom-table .ant-table-thead > tr > th:last-child,
+  .custom-table .ant-table-tbody > tr > td:last-child {
+    border-right: none;
+  }
+`;
+
+// Inject styles into the document
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.type = 'text/css';
+  styleSheet.innerText = styles;
+  document.head.appendChild(styleSheet);
+}
 
 export default DealerCategoryList;
