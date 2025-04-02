@@ -28,7 +28,7 @@ const LoginPage = () => {
             router.push('/dashboard');
             break;
           case 'accounts':
-            router.push('/dealers/account');
+            router.push('/branch/account');
             break;
           case 'deliveryboy':
             router.push(`/delivery/${data.deliveryboyId || data._id}`); // Fallback to _id if deliveryboyId isn't present
