@@ -6,49 +6,81 @@ exports.createClosingEntry = async (req, res) => {
     const {
       branchId,
       date,
-      productSales,
-      cakeSales,
+      systemSales,
+      manualSales,
+      onlineSales,
       expenses,
       creditCardPayment,
       upiPayment,
       cashPayment,
+      denom2000,
+      denom500,
+      denom200,
+      denom100,
+      denom50,
+      denom20,
+      denom10,
     } = req.body;
 
     // Validate required fields
     if (
       !branchId ||
       !date ||
-      productSales === undefined ||
-      cakeSales === undefined ||
+      systemSales === undefined ||
+      manualSales === undefined ||
+      onlineSales === undefined ||
       expenses === undefined ||
       creditCardPayment === undefined ||
       upiPayment === undefined ||
-      cashPayment === undefined
+      cashPayment === undefined ||
+      denom2000 === undefined ||
+      denom500 === undefined ||
+      denom200 === undefined ||
+      denom100 === undefined ||
+      denom50 === undefined ||
+      denom20 === undefined ||
+      denom10 === undefined
     ) {
       return res.status(400).json({ success: false, message: 'All fields are required' });
     }
 
-    // Validate numeric fields
+    // Validate non-negative values
     if (
-      productSales < 0 ||
-      cakeSales < 0 ||
+      systemSales < 0 ||
+      manualSales < 0 ||
+      onlineSales < 0 ||
       expenses < 0 ||
       creditCardPayment < 0 ||
       upiPayment < 0 ||
-      cashPayment < 0
+      cashPayment < 0 ||
+      denom2000 < 0 ||
+      denom500 < 0 ||
+      denom200 < 0 ||
+      denom100 < 0 ||
+      denom50 < 0 ||
+      denom20 < 0 ||
+      denom10 < 0
     ) {
-      return res.status(400).json({ success: false, message: 'Sales, expenses, and payments must be non-negative' });
+      return res.status(400).json({ success: false, message: 'All values must be non-negative' });
     }
 
     // Calculate total sales
-    const totalSales = productSales + cakeSales;
+    const totalSales = systemSales + manualSales + onlineSales;
 
-    // Validate payment breakdown
-    const totalPayments = creditCardPayment + upiPayment + cashPayment;
-    if (totalPayments !== totalSales) {
+    // Calculate total cash from denominations
+    const totalCashFromDenom =
+      denom2000 * 2000 +
+      denom500 * 500 +
+      denom200 * 200 +
+      denom100 * 100 +
+      denom50 * 50 +
+      denom20 * 20 +
+      denom10 * 10;
+
+    if (totalCashFromDenom !== cashPayment) {
       return res.status(400).json({
         success: false,
-        message: `Total payments (₹${totalPayments}) must equal total sales (₹${totalSales})`,
+        message: `Total cash from denominations (₹${totalCashFromDenom}) must equal cash payment (₹${cashPayment})`,
       });
     }
 
@@ -59,13 +91,21 @@ exports.createClosingEntry = async (req, res) => {
     const closingEntry = new ClosingEntry({
       branchId,
       date,
-      productSales,
-      cakeSales,
+      systemSales,
+      manualSales,
+      onlineSales,
       expenses,
       netResult,
       creditCardPayment,
       upiPayment,
       cashPayment,
+      denom2000,
+      denom500,
+      denom200,
+      denom100,
+      denom50,
+      denom20,
+      denom10,
     });
 
     // Save to database

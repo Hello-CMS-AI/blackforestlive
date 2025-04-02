@@ -12,7 +12,7 @@ import {
   Tooltip,
 } from 'antd';
 import { SaveOutlined, CreditCardOutlined, MobileOutlined, DollarOutlined, UnorderedListOutlined } from '@ant-design/icons';
-import { useRouter } from 'next/router'; // Import useRouter for navigation
+import { useRouter } from 'next/router';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -25,21 +25,31 @@ const { Option } = Select;
 const { Text, Title } = Typography;
 
 const ClosingEntry = () => {
-  const router = useRouter(); // Initialize router for navigation
+  const router = useRouter();
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [branchId, setBranchId] = useState(null);
-  const [date, setDate] = useState(dayjs()); // Default to current date
-  const [productSales, setProductSales] = useState(0);
-  const [cakeSales, setCakeSales] = useState(0);
+  const [date, setDate] = useState(dayjs());
+  const [systemSales, setSystemSales] = useState(0);
+  const [manualSales, setManualSales] = useState(0);
+  const [onlineSales, setOnlineSales] = useState(0);
   const [expenses, setExpenses] = useState(0);
   const [creditCardPayment, setCreditCardPayment] = useState(0);
   const [upiPayment, setUpiPayment] = useState(0);
   const [cashPayment, setCashPayment] = useState(0);
+  const [denom2000, setDenom2000] = useState(0);
+  const [denom500, setDenom500] = useState(0);
+  const [denom200, setDenom200] = useState(0);
+  const [denom100, setDenom100] = useState(0);
+  const [denom50, setDenom50] = useState(0);
+  const [denom20, setDenom20] = useState(0);
+  const [denom10, setDenom10] = useState(0);
   const [totalSales, setTotalSales] = useState(0);
   const [totalPayments, setTotalPayments] = useState(0);
   const [netResult, setNetResult] = useState(0);
+  const [discrepancy, setDiscrepancy] = useState(0);
+  const [totalCashCount, setTotalCashCount] = useState(0);
 
   // Fetch branches on page load
   useEffect(() => {
@@ -48,14 +58,50 @@ const ClosingEntry = () => {
 
   // Recalculate totals whenever inputs change
   useEffect(() => {
-    const total = (productSales || 0) + (cakeSales || 0);
+    const total = (systemSales || 0) + (manualSales || 0) + (onlineSales || 0);
     setTotalSales(total);
 
-    const totalPay = (creditCardPayment || 0) + (upiPayment || 0) + (cashPayment || 0);
+    const totalCashFromDenom =
+      (denom2000 || 0) * 2000 +
+      (denom500 || 0) * 500 +
+      (denom200 || 0) * 200 +
+      (denom100 || 0) * 100 +
+      (denom50 || 0) * 50 +
+      (denom20 || 0) * 20 +
+      (denom10 || 0) * 10;
+    setCashPayment(totalCashFromDenom);
+
+    const totalCashCountCalc =
+      (denom2000 || 0) +
+      (denom500 || 0) +
+      (denom200 || 0) +
+      (denom100 || 0) +
+      (denom50 || 0) +
+      (denom20 || 0) +
+      (denom10 || 0);
+    setTotalCashCount(totalCashCountCalc);
+
+    const totalPay = (creditCardPayment || 0) + (upiPayment || 0) + (totalCashFromDenom || 0);
     setTotalPayments(totalPay);
 
+    setDiscrepancy(totalPay - total);
+
     setNetResult(total - (expenses || 0));
-  }, [productSales, cakeSales, expenses, creditCardPayment, upiPayment, cashPayment]);
+  }, [
+    systemSales,
+    manualSales,
+    onlineSales,
+    expenses,
+    creditCardPayment,
+    upiPayment,
+    denom2000,
+    denom500,
+    denom200,
+    denom100,
+    denom50,
+    denom20,
+    denom10,
+  ]);
 
   const fetchBranches = async () => {
     setLoading(true);
@@ -88,12 +134,16 @@ const ClosingEntry = () => {
       message.error('Please select a date');
       return;
     }
-    if (productSales === null || productSales === undefined) {
-      message.error('Please enter product sales');
+    if (systemSales === null || systemSales === undefined) {
+      message.error('Please enter system sales');
       return;
     }
-    if (cakeSales === null || cakeSales === undefined) {
-      message.error('Please enter cake sales');
+    if (manualSales === null || manualSales === undefined) {
+      message.error('Please enter manual sales');
+      return;
+    }
+    if (onlineSales === null || onlineSales === undefined) {
+      message.error('Please enter online sales');
       return;
     }
     if (expenses === null || expenses === undefined) {
@@ -111,10 +161,23 @@ const ClosingEntry = () => {
       message.error('Please enter all payment amounts');
       return;
     }
-
-    // Validate payment totals
-    if (totalPayments !== totalSales) {
-      message.error(`Total payments (₹${totalPayments}) must equal total sales (₹${totalSales})`);
+    if (
+      denom2000 === null ||
+      denom2000 === undefined ||
+      denom500 === null ||
+      denom500 === undefined ||
+      denom200 === null ||
+      denom200 === undefined ||
+      denom100 === null ||
+      denom100 === undefined ||
+      denom50 === null ||
+      denom50 === undefined ||
+      denom20 === null ||
+      denom20 === undefined ||
+      denom10 === null ||
+      denom10 === undefined
+    ) {
+      message.error('Please enter all denomination counts');
       return;
     }
 
@@ -126,12 +189,20 @@ const ClosingEntry = () => {
         body: JSON.stringify({
           branchId,
           date: date.format('YYYY-MM-DD'),
-          productSales,
-          cakeSales,
+          systemSales,
+          manualSales,
+          onlineSales,
           expenses,
           creditCardPayment,
           upiPayment,
           cashPayment,
+          denom2000,
+          denom500,
+          denom200,
+          denom100,
+          denom50,
+          denom20,
+          denom10,
         }),
       });
       const result = await response.json();
@@ -140,12 +211,20 @@ const ClosingEntry = () => {
         // Reset form
         setBranchId(null);
         setDate(dayjs());
-        setProductSales(0);
-        setCakeSales(0);
+        setSystemSales(0);
+        setManualSales(0);
+        setOnlineSales(0);
         setExpenses(0);
         setCreditCardPayment(0);
         setUpiPayment(0);
         setCashPayment(0);
+        setDenom2000(0);
+        setDenom500(0);
+        setDenom200(0);
+        setDenom100(0);
+        setDenom50(0);
+        setDenom20(0);
+        setDenom10(0);
       } else {
         message.error(result.message || 'Failed to submit closing entry');
       }
@@ -173,7 +252,7 @@ const ClosingEntry = () => {
           level={2}
           style={{
             textAlign: 'center',
-            marginBottom: '20px', // Reduced margin to make space for the button
+            marginBottom: '20px',
             color: '#1a3042',
             fontWeight: 'bold',
           }}
@@ -181,7 +260,6 @@ const ClosingEntry = () => {
           Closing Entry
         </Title>
 
-        {/* Add View Closing Entries Button */}
         <Space style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
           <Button
             type="default"
@@ -258,10 +336,10 @@ const ClosingEntry = () => {
                   size="large"
                 />
 
-                <Text strong>Product Sales (₹):</Text>
+                <Text strong>System Sales (₹):</Text>
                 <InputNumber
-                  value={productSales}
-                  onChange={(value) => setProductSales(value)}
+                  value={systemSales}
+                  onChange={(value) => setSystemSales(value)}
                   min={0}
                   formatter={(value) => `₹${value}`}
                   parser={(value) => value.replace('₹', '')}
@@ -269,10 +347,21 @@ const ClosingEntry = () => {
                   size="large"
                 />
 
-                <Text strong>Cake Sales (₹):</Text>
+                <Text strong>Manual Sales (₹):</Text>
                 <InputNumber
-                  value={cakeSales}
-                  onChange={(value) => setCakeSales(value)}
+                  value={manualSales}
+                  onChange={(value) => setManualSales(value)}
+                  min={0}
+                  formatter={(value) => `₹${value}`}
+                  parser={(value) => value.replace('₹', '')}
+                  style={{ width: '100%' }}
+                  size="large"
+                />
+
+                <Text strong>Online Sales (₹):</Text>
+                <InputNumber
+                  value={onlineSales}
+                  onChange={(value) => setOnlineSales(value)}
                   min={0}
                   formatter={(value) => `₹${value}`}
                   parser={(value) => value.replace('₹', '')}
@@ -291,7 +380,6 @@ const ClosingEntry = () => {
                   size="large"
                 />
 
-                {/* Payment Breakdown */}
                 <Text strong>
                   Credit Card (₹):
                   <Tooltip title="Amount paid via credit/debit card">
@@ -325,20 +413,62 @@ const ClosingEntry = () => {
                 />
 
                 <Text strong>
-                  Cash (₹):
-                  <Tooltip title="Amount paid in cash">
+                  Cash Denominations:
+                  <Tooltip title="Enter the count of each denomination">
                     <DollarOutlined style={{ marginLeft: '8px', color: '#1890ff' }} />
                   </Tooltip>
                 </Text>
-                <InputNumber
-                  value={cashPayment}
-                  onChange={(value) => setCashPayment(value)}
-                  min={0}
-                  formatter={(value) => `₹${value}`}
-                  parser={(value) => value.replace('₹', '')}
-                  style={{ width: '100%' }}
-                  size="large"
-                />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <Text>2000 ×</Text>
+                  <InputNumber
+                    value={denom2000}
+                    onChange={(value) => setDenom2000(value)}
+                    min={0}
+                    size="large"
+                  />
+                  <Text>500 ×</Text>
+                  <InputNumber
+                    value={denom500}
+                    onChange={(value) => setDenom500(value)}
+                    min={0}
+                    size="large"
+                  />
+                  <Text>200 ×</Text>
+                  <InputNumber
+                    value={denom200}
+                    onChange={(value) => setDenom200(value)}
+                    min={0}
+                    size="large"
+                  />
+                  <Text>100 ×</Text>
+                  <InputNumber
+                    value={denom100}
+                    onChange={(value) => setDenom100(value)}
+                    min={0}
+                    size="large"
+                  />
+                  <Text>50 ×</Text>
+                  <InputNumber
+                    value={denom50}
+                    onChange={(value) => setDenom50(value)}
+                    min={0}
+                    size="large"
+                  />
+                  <Text>20 ×</Text>
+                  <InputNumber
+                    value={denom20}
+                    onChange={(value) => setDenom20(value)}
+                    min={0}
+                    size="large"
+                  />
+                  <Text>10 ×</Text>
+                  <InputNumber
+                    value={denom10}
+                    onChange={(value) => setDenom10(value)}
+                    min={0}
+                    size="large"
+                  />
+                </div>
               </div>
               <Button
                 type="primary"
@@ -374,14 +504,18 @@ const ClosingEntry = () => {
               hoverable
             >
               <Space direction="vertical" style={{ width: '100%', fontSize: '14px' }}>
-                {/* Sales and Expenses */}
+                {/* Sales */}
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Text>Product Sales:</Text>
-                  <Text>₹{productSales || 0}</Text>
+                  <Text>System Sales:</Text>
+                  <Text>₹{systemSales || 0}</Text>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Text>Cake Sales:</Text>
-                  <Text>₹{cakeSales || 0}</Text>
+                  <Text>Manual Sales:</Text>
+                  <Text>₹{manualSales || 0}</Text>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Text>Online Sales:</Text>
+                  <Text>₹{onlineSales || 0}</Text>
                 </div>
                 <div
                   style={{
@@ -395,10 +529,22 @@ const ClosingEntry = () => {
                   <Text strong>Total Sales:</Text>
                   <Text strong>₹{totalSales}</Text>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Text>Expenses:</Text>
-                  <Text>₹{expenses || 0}</Text>
+
+                {/* Expenses */}
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    padding: '8px 0',
+                    borderTop: '1px solid #e8e8e8',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  <Text strong>Expenses:</Text>
+                  <Text strong>₹{expenses || 0}</Text>
                 </div>
+
+                {/* Net Result */}
                 <div
                   style={{
                     display: 'flex',
@@ -456,14 +602,71 @@ const ClosingEntry = () => {
                     }}
                   >
                     <Text strong>Total Payments:</Text>
+                    <Text strong>₹{totalPayments}</Text>
+                  </div>
+                </div>
+
+                {/* Denomination Breakdown */}
+                <div style={{ marginTop: '20px' }}>
+                  <Title level={5} style={{ margin: 0, color: '#34495e' }}>
+                    Cash Denomination Breakdown
+                  </Title>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+                    <Text>2000 × {denom2000}:</Text>
+                    <Text>₹{(denom2000 || 0) * 2000}</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Text>500 × {denom500}:</Text>
+                    <Text>₹{(denom500 || 0) * 500}</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Text>200 × {denom200}:</Text>
+                    <Text>₹{(denom200 || 0) * 200}</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Text>100 × {denom100}:</Text>
+                    <Text>₹{(denom100 || 0) * 100}</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Text>50 × {denom50}:</Text>
+                    <Text>₹{(denom50 || 0) * 50}</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Text>20 × {denom20}:</Text>
+                    <Text>₹{(denom20 || 0) * 20}</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Text>10 × {denom10}:</Text>
+                    <Text>₹{(denom10 || 0) * 10}</Text>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      padding: '8px 0',
+                      borderTop: '1px solid #e8e8e8',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    <Text strong>Total Cash Count:</Text>
+                    <Text strong>{totalCashCount}</Text>
+                  </div>
+                </div>
+
+                {/* Discrepancy */}
+                <div style={{ marginTop: '20px' }}>
+                  <Title level={5} style={{ margin: 0, color: '#34495e' }}>
+                    Discrepancy
+                  </Title>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+                    <Text>Total Payments - Total Sales:</Text>
                     <Text
-                      strong
                       style={{
-                        color: totalPayments === totalSales ? '#52c41a' : '#ff4d4f',
+                        color: discrepancy === 0 ? '#52c41a' : '#ff4d4f',
                         fontSize: '14px',
                       }}
                     >
-                      ₹{totalPayments}
+                      ₹{discrepancy}
                     </Text>
                   </div>
                 </div>

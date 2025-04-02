@@ -11,12 +11,17 @@ const closingEntrySchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
-    productSales: {
+    systemSales: {
       type: Number,
       required: true,
       min: 0,
     },
-    cakeSales: {
+    manualSales: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    onlineSales: {
       type: Number,
       required: true,
       min: 0,
@@ -41,6 +46,41 @@ const closingEntrySchema = new mongoose.Schema(
       min: 0,
     },
     cashPayment: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    denom2000: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    denom500: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    denom200: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    denom100: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    denom50: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    denom20: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    denom10: {
       type: Number,
       required: true,
       min: 0,
