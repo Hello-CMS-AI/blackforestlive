@@ -422,7 +422,7 @@ const ClosingEntry = () => {
                   <Text>200 ×</Text>
                   <InputNumber
                     value={denom200}
-                    onChange={(value) => setDenom2000(value)}
+                    onChange={(value) => setDenom200(value)} // Fixed typo: was setDenom2000
                     min={0}
                     size="large"
                   />
