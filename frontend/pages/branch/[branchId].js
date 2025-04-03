@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Layout, Button, Space, Row, Col, message, Image, Radio, Badge, Tooltip, Select, Dropdown, Menu, Input } from "antd";
-import { LogoutOutlined,AccountBookFilled, ShoppingCartOutlined, MenuOutlined, ArrowLeftOutlined, CheckCircleFilled, PlusOutlined, MinusOutlined, CloseOutlined, WalletOutlined, CreditCardOutlined, SaveOutlined, PrinterOutlined, UserOutlined } from "@ant-design/icons";
+import { LogoutOutlined, AccountBookFilled, ShoppingCartOutlined, MenuOutlined, ArrowLeftOutlined, CheckCircleFilled, PlusOutlined, MinusOutlined, CloseOutlined, WalletOutlined, CreditCardOutlined, SaveOutlined, PrinterOutlined, UserOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import { jwtDecode as jwtDecodeLib } from "jwt-decode";
+import { connectPrinter, sendToPrinter } from '../utils/bluetoothService';
+import { generateReceipt } from '../utils/escposGenerator';
 
 const { Header, Content, Sider } = Layout;
 const { Option } = Select;
@@ -40,6 +42,8 @@ const BillingPage = ({ branchId }) => {
   const [selectedWaiter, setSelectedWaiter] = useState(null);
   const [waiters, setWaiters] = useState([]);
   const [touchStartX, setTouchStartX] = useState(null);
+  const [printerType, setPrinterType] = useState('usb');
+  const [printerStatus, setPrinterStatus] = useState('disconnected');
 
   const contentRef = useRef(null);
   const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://apib.dinasuvadu.in';
@@ -280,7 +284,7 @@ const BillingPage = ({ branchId }) => {
 
     const touch = e.changedTouches[0];
     const swipeDistance = touch.clientX - touchStartX;
-    if (swipeDistance > 50) { // Swipe right threshold
+    if (swipeDistance > 50) {
       handleBackToCategories();
     }
   };
@@ -426,19 +430,77 @@ const BillingPage = ({ branchId }) => {
       if (response.ok) {
         message.success(data.message || 'Cart saved and ready to print!');
         setLastBillNo(data.order.billNo);
-        printReceipt(data.order, todayAssignment, {
-          totalQty,
-          totalItems: uniqueItems,
-          subtotal,
-          sgst,
-          cgst,
-          totalWithGST,
-          totalWithGSTRounded,
-          roundOff,
-          paymentMethod,
-          tenderAmount,
-          balance,
-        });
+        
+        if (printerType === 'bluetooth') {
+          setPrinterStatus('connecting');
+          try {
+            const connection = await connectPrinter();
+            setPrinterStatus('connected');
+            // Add a small delay to ensure the "connected" status is visible
+            await new Promise(resolve => setTimeout(resolve, 1000)); // 1-second delay
+            
+            const rawData = generateReceipt({
+              order: data.order,
+              branch: data.order.branchId,
+              items: selectedProducts.map(product => ({
+                name: product.name,
+                qty: product.count,
+                total: calculateProductTotal(product).toFixed(2),
+              })),
+              grandTotal: totalWithGST.toFixed(2),
+              todayAssignment,
+              waiterInfo: selectedWaiter 
+                ? `${selectedWaiter.name} (${selectedWaiter.employeeId})`
+                : 'Not Assigned',
+              billNo: data.order.billNo,
+            });
+            
+            setPrinterStatus('printing');
+            // Flatten the buffer array into a single Uint8Array
+            const flattenedData = rawData.reduce((acc, curr) => {
+              return new Uint8Array([...acc, ...curr]);
+            }, new Uint8Array());
+            
+            await sendToPrinter(connection.characteristic, flattenedData);
+            setPrinterStatus('completed');
+            message.success('Printed via Bluetooth successfully!');
+            
+            // Disconnect after printing
+            connection.disconnect();
+            setPrinterStatus('disconnected');
+          } catch (bluetoothError) {
+            setPrinterStatus('error');
+            message.error(`Bluetooth print failed: ${bluetoothError.message}`);
+            printReceipt(data.order, todayAssignment, {
+              totalQty,
+              totalItems: uniqueItems,
+              subtotal,
+              sgst,
+              cgst,
+              totalWithGST,
+              totalWithGSTRounded,
+              roundOff,
+              paymentMethod,
+              tenderAmount,
+              balance,
+            });
+          }
+        } else {
+          printReceipt(data.order, todayAssignment, {
+            totalQty,
+            totalItems: uniqueItems,
+            subtotal,
+            sgst,
+            cgst,
+            totalWithGST,
+            totalWithGSTRounded,
+            roundOff,
+            paymentMethod,
+            tenderAmount,
+            balance,
+          });
+        }
+
         setSelectedProducts([]);
         setWaiterInput("");
         setWaiterName("");
@@ -820,7 +882,6 @@ const BillingPage = ({ branchId }) => {
     }
   };
 
-  // useEffect
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedToken = localStorage.getItem('token');
@@ -956,233 +1017,220 @@ const BillingPage = ({ branchId }) => {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-   <Header
-  style={{
-    background: "#000000",
-    padding: "0 20px",
-    color: "#FFFFFF",
-    height: "64px",
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1000,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-  }}
->
-  {/* Left Section */}
-  <div style={{ display: "flex", alignItems: "center" }}>
-    {/* Mobile Navigation on Left */}
-    <div style={{ display: isPortrait || isMobile ? "flex" : "none", alignItems: "center" }}>
-      <Button
-        type="text"
-        icon={<MenuOutlined />}
-        onClick={toggleMobileMenu}
+      <Header
         style={{
-          fontSize: "18px",
+          background: "#000000",
+          padding: "0 20px",
           color: "#FFFFFF",
-          marginRight: "10px",
+          height: "64px",
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
         }}
-      />
-    </div>
-
-    {/* User Info */}
-    <div style={{ display: "flex", alignItems: "center" }}>
-      <Space align="center">
-        <span style={{ fontSize: "14px", color: "#FFFFFF" }}>
-          {name}
-        </span>
-        <Dropdown overlay={userMenu} trigger={['click']}>
-          <Button
-            type="text"
-            icon={<UserOutlined />}
+      >
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <div style={{ display: isPortrait || isMobile ? "flex" : "none", alignItems: "center" }}>
+            <Button
+              type="text"
+              icon={<MenuOutlined />}
+              onClick={toggleMobileMenu}
+              style={{
+                fontSize: "18px",
+                color: "#FFFFFF",
+                marginRight: "10px",
+              }}
+            />
+          </div>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <Space align="center">
+              <span style={{ fontSize: "14px", color: "#FFFFFF" }}>
+                {name}
+              </span>
+              <Dropdown overlay={userMenu} trigger={['click']}>
+                <Button
+                  type="text"
+                  icon={<UserOutlined />}
+                  style={{
+                    fontSize: "16px",
+                    color: "#FFFFFF",
+                    padding: "0 10px",
+                  }}
+                >
+                  {isPortrait || isMobile ? null : "Manager"}
+                </Button>
+              </Dropdown>
+              <Button
+                type="text"
+                icon={<AccountBookFilled />}
+                onClick={() => router.push('/branch/account')}
+                style={{
+                  fontSize: "16px",
+                  color: "#FFFFFF",
+                  padding: "0 10px",
+                }}
+              >
+                {isPortrait || isMobile ? null : "Account"}
+              </Button>
+            </Space>
+          </div>
+        </div>
+        <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+          {selectedCategory && !(isPortrait || isMobile) && (
+            <Input
+              placeholder="Search products by name"
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              style={{
+                width: '100%',
+                maxWidth: '600px',
+                height: '40px',
+                fontSize: '16px',
+                borderRadius: '8px',
+                background: '#fff',
+                color: '#000',
+              }}
+            />
+          )}
+        </div>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <div style={{ display: isPortrait || isMobile ? "flex" : "none", alignItems: "center" }}>
+            <Badge count={selectedProducts.length} showZero>
+              <Button
+                type="text"
+                icon={<ShoppingCartOutlined />}
+                onClick={handleCartToggle}
+                style={{
+                  fontSize: "24px",
+                  color: "#FFFFFF",
+                  marginRight: "10px",
+                }}
+              />
+            </Badge>
+          </div>
+          <div
             style={{
-              fontSize: "16px",
-              color: "#FFFFFF",
-              padding: "0 10px",
+              display: isPortrait || isMobile ? "none" : "flex",
+              alignItems: "center",
             }}
           >
-            {isPortrait || isMobile ? null : "Manager"}
-          </Button>
-        </Dropdown>
-        <Button
-          type="text"
-          icon={<AccountBookFilled />}
-          onClick={() => router.push('/branch/account')}
-          style={{
-            fontSize: "16px",
-            color: "#FFFFFF",
-            padding: "0 10px",
-          }}
-        >
-          {isPortrait || isMobile ? null : "Account"}
-        </Button>
-      </Space>
-    </div>
-  </div>
-
-  {/* Desktop Center Section with Search Bar */}
-  <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
-    {selectedCategory && !(isPortrait || isMobile) && (
-      <Input
-        placeholder="Search products by name"
-        value={searchQuery}
-        onChange={(e) => handleSearch(e.target.value)}
-        style={{
-          width: '100%',
-          maxWidth: '600px',
-          height: '40px',
-          fontSize: '16px',
-          borderRadius: '8px',
-          background: '#fff',
-          color: '#000',
-        }}
-      />
-    )}
-  </div>
-
-  {/* Right Section */}
-  <div style={{ display: "flex", alignItems: "center" }}>
-    {/* Mobile Cart on Right */}
-    <div style={{ display: isPortrait || isMobile ? "flex" : "none", alignItems: "center" }}>
-      <Badge count={selectedProducts.length} showZero>
-        <Button
-          type="text"
-          icon={<ShoppingCartOutlined />}
-          onClick={handleCartToggle}
-          style={{
-            fontSize: "24px",
-            color: "#FFFFFF",
-            marginRight: "10px",
-          }}
-        />
-      </Badge>
-    </div>
-
-    {/* Desktop Version */}
-    <div
-      style={{
-        display: isPortrait || isMobile ? "none" : "flex",
-        alignItems: "center",
-      }}
-    >
-      <Space align="center">
-        <Button
-          type={selectedProductType === null ? "primary" : "text"}
-          onClick={() => handleProductTypeFilter(null)}
-          style={{ color: "#FFFFFF", marginRight: '10px' }}
-        >
-          All
-        </Button>
-        <Button
-          type={selectedProductType === 'cake' ? "primary" : "text"}
-          onClick={() => handleProductTypeFilter('cake')}
-          style={{ color: "#FFFFFF", marginRight: '10px' }}
-        >
-          Cake
-        </Button>
-        <Button
-          type={selectedProductType === 'non-cake' ? "primary" : "text"}
-          onClick={() => handleProductTypeFilter('non-cake')}
-          style={{ color: "#FFFFFF", marginRight: '10px' }}
-        >
-          Non-Cake
-        </Button>
-        <Badge count={selectedProducts.length} showZero>
-          <Button
-            type="text"
-            icon={<ShoppingCartOutlined />}
-            onClick={handleCartToggle}
+            <Space align="center">
+              <Button
+                type={selectedProductType === null ? "primary" : "text"}
+                onClick={() => handleProductTypeFilter(null)}
+                style={{ color: "#FFFFFF", marginRight: '10px' }}
+              >
+                All
+              </Button>
+              <Button
+                type={selectedProductType === 'cake' ? "primary" : "text"}
+                onClick={() => handleProductTypeFilter('cake')}
+                style={{ color: "#FFFFFF", marginRight: '10px' }}
+              >
+                Cake
+              </Button>
+              <Button
+                type={selectedProductType === 'non-cake' ? "primary" : "text"}
+                onClick={() => handleProductTypeFilter('non-cake')}
+                style={{ color: "#FFFFFF", marginRight: '10px' }}
+              >
+                Non-Cake
+              </Button>
+              <Badge count={selectedProducts.length} showZero>
+                <Button
+                  type="text"
+                  icon={<ShoppingCartOutlined />}
+                  onClick={handleCartToggle}
+                  style={{
+                    fontSize: "24px",
+                    color: "#FFFFFF",
+                    marginRight: '10px',
+                  }}
+                />
+              </Badge>
+              <Button
+                type="text"
+                icon={<LogoutOutlined />}
+                onClick={handleLogout}
+                style={{
+                  fontSize: "16px",
+                  color: "#FFFFFF",
+                }}
+              >
+                Logout
+              </Button>
+            </Space>
+          </div>
+        </div>
+        {isMobileMenuOpen && (isPortrait || isMobile) && (
+          <div
             style={{
-              fontSize: "24px",
-              color: "#FFFFFF",
-              marginRight: '10px',
+              position: "fixed",
+              top: "64px",
+              left: 0,
+              width: "100%",
+              background: "#FFFFFF",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+              zIndex: 999,
+              padding: "10px 20px",
+              color: "#000000",
             }}
-          />
-        </Badge>
-        <Button
-          type="text"
-          icon={<LogoutOutlined />}
-          onClick={handleLogout}
-          style={{
-            fontSize: "16px",
-            color: "#FFFFFF",
-          }}
-        >
-          Logout
-        </Button>
-      </Space>
-    </div>
-  </div>
-
-  {/* Mobile Navigation Drawer */}
-  {isMobileMenuOpen && (isPortrait || isMobile) && (
-    <div
-      style={{
-        position: "fixed",
-        top: "64px",
-        left: 0,
-        width: "100%",
-        background: "#FFFFFF",
-        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-        zIndex: 999,
-        padding: "10px 20px",
-        color: "#000000",
-      }}
-    >
-      <Space direction="vertical" style={{ width: "100%" }}>
-        <Button
-          type={selectedProductType === null ? "primary" : "text"}
-          onClick={() => {
-            handleProductTypeFilter(null);
-            toggleMobileMenu();
-          }}
-          style={{ width: "100%", textAlign: "left", color: selectedProductType === null ? "#FFFFFF" : "#000000" }}
-        >
-          All
-        </Button>
-        <Button
-          type={selectedProductType === 'cake' ? "primary" : "text"}
-          onClick={() => {
-            handleProductTypeFilter('cake');
-            toggleMobileMenu();
-          }}
-          style={{ width: "100%", textAlign: "left", color: selectedProductType === 'cake' ? "#FFFFFF" : "#000000" }}
-        >
-          Cake
-        </Button>
-        <Button
-          type={selectedProductType === 'non-cake' ? "primary" : "text"}
-          onClick={() => {
-            handleProductTypeFilter('non-cake');
-            toggleMobileMenu();
-          }}
-          style={{ width: "100%", textAlign: "left", color: selectedProductType === 'non-cake' ? "#FFFFFF" : "#000000" }}
-        >
-          Non-Cake
-        </Button>
-        <Button
-          type="text"
-          icon={<LogoutOutlined />}
-          onClick={() => {
-            handleLogout();
-            toggleMobileMenu();
-          }}
-          style={{
-            width: "100%",
-            textAlign: "left",
-            color: "#000000",
-          }}
-        >
-          Logout
-        </Button>
-      </Space>
-    </div>
-  )}
-</Header>
+          >
+            <Space direction="vertical" style={{ width: "100%" }}>
+              <Button
+                type={selectedProductType === null ? "primary" : "text"}
+                onClick={() => {
+                  handleProductTypeFilter(null);
+                  toggleMobileMenu();
+                }}
+                style={{ width: "100%", textAlign: "left", color: selectedProductType === null ? "#FFFFFF" : "#000000" }}
+              >
+                All
+              </Button>
+              <Button
+                type={selectedProductType === 'cake' ? "primary" : "text"}
+                onClick={() => {
+                  handleProductTypeFilter('cake');
+                  toggleMobileMenu();
+                }}
+                style={{ width: "100%", textAlign: "left", color: selectedProductType === 'cake' ? "#FFFFFF" : "#000000" }}
+              >
+                Cake
+              </Button>
+              <Button
+                type={selectedProductType === 'non-cake' ? "primary" : "text"}
+                onClick={() => {
+                  handleProductTypeFilter('non-cake');
+                  toggleMobileMenu();
+                }}
+                style={{ width: "100%", textAlign: "left", color: selectedProductType === 'non-cake' ? "#FFFFFF" : "#000000" }}
+              >
+                Non-Cake
+              </Button>
+              <Button
+                type="text"
+                icon={<LogoutOutlined />}
+                onClick={() => {
+                  handleLogout();
+                  toggleMobileMenu();
+                }}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  color: "#000000",
+                }}
+              >
+                Logout
+              </Button>
+            </Space>
+          </div>
+        )}
+      </Header>
 
       <Layout style={{ flex: 1, marginTop: '64px' }}>
         <Content
@@ -1350,6 +1398,29 @@ const BillingPage = ({ branchId }) => {
                   <p style={{ marginTop: '5px', color: '#ff4d4f' }}>
                     {waiterError}
                   </p>
+                )}
+              </div>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', marginBottom: '5px' }}>Select Printer:</label>
+                <Radio.Group 
+                  value={printerType} 
+                  onChange={(e) => setPrinterType(e.target.value)}
+                  style={{ width: '100%' }}
+                >
+                  <Radio.Button value="usb">USB Printer</Radio.Button>
+                  <Radio.Button value="bluetooth">Bluetooth</Radio.Button>
+                </Radio.Group>
+                {printerStatus !== 'disconnected' && (
+                  <span style={{ 
+                    display: 'block',
+                    marginTop: '5px',
+                    color: printerStatus === 'error' ? '#ff4d4f' :
+                           printerStatus === 'completed' ? '#52c41a' :
+                           printerStatus === 'connected' ? '#52c41a' : '#1890ff',
+                    fontSize: '12px'
+                  }}>
+                    Status: {printerStatus.toUpperCase()}
+                  </span>
                 )}
               </div>
             </div>
