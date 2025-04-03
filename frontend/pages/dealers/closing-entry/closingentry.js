@@ -47,9 +47,7 @@ const ClosingEntry = () => {
   const [denom10, setDenom10] = useState(0);
   const [totalSales, setTotalSales] = useState(0);
   const [totalPayments, setTotalPayments] = useState(0);
-  const [netResult, setNetResult] = useState(0);
   const [discrepancy, setDiscrepancy] = useState(0);
-  const [totalCashCount, setTotalCashCount] = useState(0);
 
   // Fetch branches on page load
   useEffect(() => {
@@ -71,22 +69,10 @@ const ClosingEntry = () => {
       (denom10 || 0) * 10;
     setCashPayment(totalCashFromDenom);
 
-    const totalCashCountCalc =
-      (denom2000 || 0) +
-      (denom500 || 0) +
-      (denom200 || 0) +
-      (denom100 || 0) +
-      (denom50 || 0) +
-      (denom20 || 0) +
-      (denom10 || 0);
-    setTotalCashCount(totalCashCountCalc);
-
-    const totalPay = (creditCardPayment || 0) + (upiPayment || 0) + (totalCashFromDenom || 0);
+    const totalPay = (creditCardPayment || 0) + (upiPayment || 0) + (totalCashFromDenom || 0) + (expenses || 0);
     setTotalPayments(totalPay);
 
     setDiscrepancy(totalPay - total);
-
-    setNetResult(total - (expenses || 0));
   }, [
     systemSales,
     manualSales,
@@ -436,7 +422,7 @@ const ClosingEntry = () => {
                   <Text>200 ×</Text>
                   <InputNumber
                     value={denom200}
-                    onChange={(value) => setDenom200(value)}
+                    onChange={(value) => setDenom2000(value)}
                     min={0}
                     size="large"
                   />
@@ -530,42 +516,6 @@ const ClosingEntry = () => {
                   <Text strong>₹{totalSales}</Text>
                 </div>
 
-                {/* Expenses */}
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    padding: '8px 0',
-                    borderTop: '1px solid #e8e8e8',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  <Text strong>Expenses:</Text>
-                  <Text strong>₹{expenses || 0}</Text>
-                </div>
-
-                {/* Net Result */}
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    padding: '8px 0',
-                    borderTop: '1px solid #e8e8e8',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  <Text strong>Net Result:</Text>
-                  <Text
-                    strong
-                    style={{
-                      color: netResult >= 0 ? '#52c41a' : '#ff4d4f',
-                      fontSize: '16px',
-                    }}
-                  >
-                    ₹{netResult}
-                  </Text>
-                </div>
-
                 {/* Payment Breakdown */}
                 <div style={{ marginTop: '20px' }}>
                   <Title level={5} style={{ margin: 0, color: '#34495e' }}>
@@ -591,6 +541,10 @@ const ClosingEntry = () => {
                       Cash:
                     </Text>
                     <Text>₹{cashPayment || 0}</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Text>Expenses:</Text>
+                    <Text>₹{expenses || 0}</Text>
                   </div>
                   <div
                     style={{
@@ -648,8 +602,8 @@ const ClosingEntry = () => {
                       fontWeight: 'bold',
                     }}
                   >
-                    <Text strong>Total Cash Count:</Text>
-                    <Text strong>{totalCashCount}</Text>
+                    <Text strong>Total Cash Amount:</Text>
+                    <Text strong>₹{cashPayment || 0}</Text>
                   </div>
                 </div>
 
@@ -659,15 +613,24 @@ const ClosingEntry = () => {
                     Discrepancy
                   </Title>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
-                    <Text>Total Payments - Total Sales:</Text>
-                    <Text
-                      style={{
-                        color: discrepancy === 0 ? '#52c41a' : '#ff4d4f',
-                        fontSize: '14px',
-                      }}
-                    >
-                      ₹{discrepancy}
-                    </Text>
+                    <Text>Total Sales:</Text>
+                    <Text>₹{totalSales}</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Text>Total Payments:</Text>
+                    <Text>₹{totalPayments}</Text>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+                    <Text>Status:</Text>
+                    {discrepancy === 0 ? (
+                      <Text style={{ color: '#52c41a', fontSize: '14px' }}>
+                        Everything OK
+                      </Text>
+                    ) : (
+                      <Text style={{ color: '#ff4d4f', fontSize: '14px' }}>
+                        Difference: ₹{discrepancy}
+                      </Text>
+                    )}
                   </div>
                 </div>
               </Space>
