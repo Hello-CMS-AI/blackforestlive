@@ -3,8 +3,8 @@ import { Layout, Button, Space, Row, Col, message, Image, Radio, Badge, Tooltip,
 import { LogoutOutlined, AccountBookFilled, ShoppingCartOutlined, MenuOutlined, ArrowLeftOutlined, CheckCircleFilled, PlusOutlined, MinusOutlined, CloseOutlined, WalletOutlined, CreditCardOutlined, SaveOutlined, PrinterOutlined, UserOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import { jwtDecode as jwtDecodeLib } from "jwt-decode";
-import { connectPrinter, sendToPrinter } from '../utils/bluetoothService';
-import { generateReceipt } from '../utils/escposGenerator';
+import { connectPrinter, sendToPrinter } from '../../frontend/utils/bluetoothService';
+import { generateReceipt } from '../../frontend/utils/escposGenerator';
 
 const { Header, Content, Sider } = Layout;
 const { Option } = Select;
