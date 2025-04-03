@@ -275,13 +275,13 @@ const ClosingEntryList = () => {
               type="default"
               size="large"
               icon={<StockOutlined />}
-              href="http://localhost:3000/dealers/stock-entry/create"
+              href="/dealers/stock-entry/create"
             />
             {/* Stock Text Button (List) */}
             <Button
               type="default"
               size="large"
-              href="http://localhost:3000/dealers/stock-entry/list"
+              href="/dealers/stock-entry/list"
             >
               Stock List
             </Button>
@@ -290,13 +290,13 @@ const ClosingEntryList = () => {
               type="default"
               size="large"
               icon={<FileTextOutlined />}
-              href="http://localhost:3000/dealers/bill-entry/create"
+              href="/dealers/bill-entry/create"
             />
             {/* Bill Entry Text Button (List) */}
             <Button
               type="default"
               size="large"
-              href="http://localhost:3000/dealers/bill-entry/list"
+              href="/dealers/bill-entry/list"
             >
               Bill Entry List
             </Button>
@@ -305,7 +305,7 @@ const ClosingEntryList = () => {
               type="default"
               size="large"
               icon={<DollarOutlined />}
-              href="http://localhost:3000/dealers/expense/ExpenseEntry"
+              href="/dealers/expense/ExpenseEntry"
             >
               Expense Entry
             </Button>
@@ -394,7 +394,7 @@ const ClosingEntryList = () => {
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
-                    href="http://localhost:3000/dealers/closing-entry/closingentry"
+                    href="/dealers/closing-entry/closingentry"
                   >
                     Create Closing Bill
                   </Button>
