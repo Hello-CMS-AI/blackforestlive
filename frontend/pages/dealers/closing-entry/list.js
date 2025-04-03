@@ -21,7 +21,6 @@ const ClosingEntryList = () => {
   const [loading, setLoading] = useState(false);
   const [branchFilter, setBranchFilter] = useState(null);
   const [dateRangeFilter, setDateRangeFilter] = useState(null);
-  const [netResultFilter, setNetResultFilter] = useState('All');
   const [dateFilterType, setDateFilterType] = useState('Created');
 
   useEffect(() => {
@@ -33,7 +32,7 @@ const ClosingEntryList = () => {
     let filtered = [...closingEntries];
 
     if (branchFilter) {
-      filtered = filtered.filter((entry) => entry.branchId._id === branchFilter);
+      filtered = filtered.filter((entry) => entry.branchId?._id === branchFilter);
     }
 
     if (dateRangeFilter && dateRangeFilter.length === 2) {
@@ -45,14 +44,8 @@ const ClosingEntryList = () => {
       });
     }
 
-    if (netResultFilter === 'Profit') {
-      filtered = filtered.filter((entry) => entry.netResult >= 0);
-    } else if (netResultFilter === 'Loss') {
-      filtered = filtered.filter((entry) => entry.netResult < 0);
-    }
-
     setFilteredEntries(filtered);
-  }, [closingEntries, branchFilter, dateRangeFilter, netResultFilter, dateFilterType]);
+  }, [closingEntries, branchFilter, dateRangeFilter, dateFilterType]);
 
   const fetchBranches = async () => {
     try {
@@ -91,7 +84,6 @@ const ClosingEntryList = () => {
   const handleReset = () => {
     setBranchFilter(null);
     setDateRangeFilter(null);
-    setNetResultFilter('All');
     setDateFilterType('Created');
   };
 
@@ -107,8 +99,8 @@ const ClosingEntryList = () => {
               table { width: 100%; border-collapse: collapse; font-size: 12px; }
               th, td { border: 1px solid #000; padding: 8px; text-align: left; }
               th { background-color: #f2f2f2; font-weight: bold; }
-              .positive { color: #52c41a; }
-              .negative { color: #ff4d4f; }
+              .difference { color: #ff4d4f; }
+              .ok { color: #52c41a; }
             }
           </style>
         </head>
@@ -120,36 +112,41 @@ const ClosingEntryList = () => {
                 <th>S.No</th>
                 <th>Branch</th>
                 <th>Date</th>
-                <th>Product Sales</th>
-                <th>Cake Sales</th>
                 <th>Total Sales</th>
-                <th>Expenses</th>
-                <th>Net Result</th>
+                <th>Total Payments</th>
+                <th>Difference</th>
                 <th>Credit Card</th>
                 <th>UPI</th>
                 <th>Cash</th>
+                <th>Expenses</th>
                 <th>Created At</th>
               </tr>
             </thead>
             <tbody>
               ${filteredEntries
                 .map(
-                  (entry, index) => `
-                    <tr>
-                      <td>${index + 1}</td>
-                      <td>${entry.branchId?.name || 'N/A'}</td>
-                      <td>${dayjs(entry.date).format('YYYY-MM-DD')}</td>
-                      <td>₹${entry.productSales}</td>
-                      <td>₹${entry.cakeSales}</td>
-                      <td>₹${entry.productSales + entry.cakeSales}</td>
-                      <td>₹${entry.expenses}</td>
-                      <td class="${entry.netResult >= 0 ? 'positive' : 'negative'}">₹${entry.netResult}</td>
-                      <td>₹${entry.creditCardPayment}</td>
-                      <td>₹${entry.upiPayment}</td>
-                      <td>₹${entry.cashPayment}</td>
-                      <td>${dayjs(entry.createdAt).format('YYYY-MM-DD hh:mm A')}</td>
-                    </tr>
-                  `
+                  (entry, index) => {
+                    const sales = entry.systemSales + entry.manualSales + entry.onlineSales;
+                    const payments = entry.creditCardPayment + entry.upiPayment + entry.cashPayment + entry.expenses;
+                    const diff = payments - sales;
+                    return `
+                      <tr>
+                        <td>${index + 1}</td>
+                        <td>${entry.branchId?.name || 'N/A'}</td>
+                        <td>${dayjs(entry.date).format('YYYY-MM-DD')}</td>
+                        <td>₹${sales}</td>
+                        <td>₹${payments}</td>
+                        <td class="${diff === 0 ? 'ok' : 'difference'}">
+                          ₹${diff}
+                        </td>
+                        <td>₹${entry.creditCardPayment}</td>
+                        <td>₹${entry.upiPayment}</td>
+                        <td>₹${entry.cashPayment}</td>
+                        <td>₹${entry.expenses}</td>
+                        <td>${dayjs(entry.createdAt).format('YYYY-MM-DD hh:mm A')}</td>
+                      </tr>
+                    `;
+                  }
                 )
                 .join('')}
             </tbody>
@@ -174,6 +171,7 @@ const ClosingEntryList = () => {
       title: 'Branch',
       dataIndex: ['branchId', 'name'],
       key: 'branch',
+      render: (value) => value || 'N/A',
       width: 120,
     },
     {
@@ -185,43 +183,32 @@ const ClosingEntryList = () => {
       width: 100,
     },
     {
-      title: 'Product Sales',
-      dataIndex: 'productSales',
-      key: 'productSales',
-      render: (value) => `₹${value}`,
-      width: 120,
-    },
-    {
-      title: 'Cake Sales',
-      dataIndex: 'cakeSales',
-      key: 'cakeSales',
-      render: (value) => `₹${value}`,
-      width: 120,
-    },
-    {
       title: 'Total Sales',
       key: 'totalSales',
-      sorter: (a, b) => a.productSales + a.cakeSales - (b.productSales + b.cakeSales),
-      render: (record) => `₹${record.productSales + record.cakeSales}`,
+      sorter: (a, b) => (a.systemSales + a.manualSales + a.onlineSales) - (b.systemSales + b.manualSales + b.onlineSales),
+      render: (record) => `₹${record.systemSales + record.manualSales + record.onlineSales}`,
       width: 120,
     },
     {
-      title: 'Expenses',
-      dataIndex: 'expenses',
-      key: 'expenses',
-      render: (value) => `₹${value}`,
+      title: 'Total Payments',
+      key: 'totalPayments',
+      sorter: (a, b) => (a.creditCardPayment + a.upiPayment + a.cashPayment + a.expenses) - (b.creditCardPayment + b.upiPayment + b.cashPayment + b.expenses),
+      render: (record) => `₹${record.creditCardPayment + record.upiPayment + record.cashPayment + record.expenses}`,
       width: 120,
     },
     {
-      title: 'Net Result',
-      dataIndex: 'netResult',
-      key: 'netResult',
-      sorter: (a, b) => a.netResult - b.netResult,
-      render: (value) => (
-        <Text style={{ color: value >= 0 ? '#52c41a' : '#ff4d4f' }}>
-          ₹{value}
-        </Text>
-      ),
+      title: 'Difference',
+      key: 'difference',
+      render: (record) => {
+        const sales = record.systemSales + record.manualSales + record.onlineSales;
+        const payments = record.creditCardPayment + record.upiPayment + record.cashPayment + record.expenses;
+        const diff = payments - sales;
+        return (
+          <Text style={{ color: diff === 0 ? '#52c41a' : '#ff4d4f' }}>
+            ₹{diff}
+          </Text>
+        );
+      },
       width: 120,
     },
     {
@@ -242,6 +229,13 @@ const ClosingEntryList = () => {
       title: 'Cash',
       dataIndex: 'cashPayment',
       key: 'cashPayment',
+      render: (value) => `₹${value}`,
+      width: 120,
+    },
+    {
+      title: 'Expenses',
+      dataIndex: 'expenses',
+      key: 'expenses',
       render: (value) => `₹${value}`,
       width: 120,
     },
@@ -281,13 +275,13 @@ const ClosingEntryList = () => {
               type="default"
               size="large"
               icon={<StockOutlined />}
-              href="/dealers/stock-entry/create"
+              href="http://localhost:3000/dealers/stock-entry/create"
             />
             {/* Stock Text Button (List) */}
             <Button
               type="default"
               size="large"
-              href="/dealers/stock-entry/list"
+              href="http://localhost:3000/dealers/stock-entry/list"
             >
               Stock List
             </Button>
@@ -296,13 +290,13 @@ const ClosingEntryList = () => {
               type="default"
               size="large"
               icon={<FileTextOutlined />}
-              href="/dealers/bill-entry/create"
+              href="http://localhost:3000/dealers/bill-entry/create"
             />
             {/* Bill Entry Text Button (List) */}
             <Button
               type="default"
               size="large"
-              href="/dealers/bill-entry/list"
+              href="http://localhost:3000/dealers/bill-entry/list"
             >
               Bill Entry List
             </Button>
@@ -311,7 +305,7 @@ const ClosingEntryList = () => {
               type="default"
               size="large"
               icon={<DollarOutlined />}
-              href="/dealers/expense/ExpenseEntry"
+              href="http://localhost:3000/dealers/expense/ExpenseEntry"
             >
               Expense Entry
             </Button>
@@ -385,19 +379,6 @@ const ClosingEntryList = () => {
                   </Space>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                  <Text strong>Net Result</Text>
-                  <Select
-                    value={netResultFilter}
-                    onChange={(value) => setNetResultFilter(value)}
-                    style={{ width: '150px' }}
-                  >
-                    <Option value="All">All</Option>
-                    <Option value="Profit">Profit</Option>
-                    <Option value="Loss">Loss</Option>
-                  </Select>
-                </div>
-
                 <Space style={{ marginTop: '20px' }}>
                   <Button
                     icon={<PrinterOutlined />}
@@ -413,7 +394,7 @@ const ClosingEntryList = () => {
                   <Button
                     type="primary"
                     icon={<PlusOutlined />}
-                    href="/dealers/closing-entry/closingentry"
+                    href="http://localhost:3000/dealers/closing-entry/closingentry"
                   >
                     Create Closing Bill
                   </Button>
