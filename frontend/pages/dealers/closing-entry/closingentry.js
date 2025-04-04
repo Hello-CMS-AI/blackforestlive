@@ -32,6 +32,7 @@ const ClosingEntry = () => {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false); // Track if form has been submitted
+  const [closingEntryId, setClosingEntryId] = useState(null); // Store the ID of the submitted closing entry
   const [branchId, setBranchId] = useState(null);
   const [date, setDate] = useState(dayjs());
   const [systemSales, setSystemSales] = useState(0);
@@ -249,6 +250,7 @@ const ClosingEntry = () => {
       if (response.ok) {
         message.success('Closing entry submitted successfully');
         setIsSubmitted(true); // Mark as submitted to show Update and Clear buttons
+        setClosingEntryId(result.closingEntry._id); // Store the ID of the created closing entry
         setLastSubmittedDate(date); // Store the submission date for auto-clear
       } else {
         message.error(result.message || 'Failed to submit closing entry');
@@ -262,10 +264,15 @@ const ClosingEntry = () => {
   };
 
   const handleUpdate = async () => {
+    if (!closingEntryId) {
+      message.error('No closing entry ID found for updating');
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const response = await fetch('https://apib.dinasuvadu.in/api/closing-entries', {
-        method: 'POST', // Assuming the backend supports updating via POST; adjust to PUT if needed
+      const response = await fetch(`https://apib.dinasuvadu.in/api/closing-entries/${closingEntryId}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           branchId,
@@ -321,6 +328,7 @@ const ClosingEntry = () => {
     setDenom20(0);
     setDenom10(0);
     setIsSubmitted(false); // Reset to show Submit button
+    setClosingEntryId(null); // Clear the closing entry ID
     setLastSubmittedDate(null); // Clear the submission date
     message.success('Form cleared successfully');
   };
