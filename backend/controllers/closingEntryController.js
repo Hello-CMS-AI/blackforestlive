@@ -1,3 +1,4 @@
+// Ensure the file name matches the actual file (e.g., ClosingEntry.js or closingEntry.js)
 const ClosingEntry = require('../models/ClosingEntry');
 
 // Create a new closing entry
@@ -10,6 +11,7 @@ exports.createClosingEntry = async (req, res) => {
       manualSales,
       onlineSales,
       expenses,
+      expenseDetails,
       creditCardPayment,
       upiPayment,
       cashPayment,
@@ -42,6 +44,33 @@ exports.createClosingEntry = async (req, res) => {
       denom10 === undefined
     ) {
       return res.status(400).json({ success: false, message: 'All fields are required' });
+    }
+
+    // Validate expenseDetails
+    if (!expenseDetails || !Array.isArray(expenseDetails) || expenseDetails.length === 0) {
+      return res.status(400).json({ success: false, message: 'Expense details are required' });
+    }
+
+    for (const detail of expenseDetails) {
+      if (
+        detail.serialNo === undefined ||
+        !detail.purpose ||
+        detail.amount === undefined
+      ) {
+        return res.status(400).json({ success: false, message: 'All expense details fields (serialNo, purpose, amount) are required' });
+      }
+      if (detail.amount < 0) {
+        return res.status(400).json({ success: false, message: 'Expense amounts must be non-negative' });
+      }
+    }
+
+    // Validate that the sum of expenseDetails amounts matches the expenses total
+    const totalExpenseDetails = expenseDetails.reduce((sum, detail) => sum + detail.amount, 0);
+    if (totalExpenseDetails !== expenses) {
+      return res.status(400).json({
+        success: false,
+        message: `Total expenses from details (₹${totalExpenseDetails}) must match the expenses total (₹${expenses})`,
+      });
     }
 
     // Validate non-negative values
@@ -95,6 +124,7 @@ exports.createClosingEntry = async (req, res) => {
       manualSales,
       onlineSales,
       expenses,
+      expenseDetails, // Include the detailed expense breakdown
       netResult,
       creditCardPayment,
       upiPayment,

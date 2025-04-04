@@ -10,8 +10,10 @@ import {
   Space,
   Card,
   Tooltip,
+  Input,
+  Table,
 } from 'antd';
-import { SaveOutlined, CreditCardOutlined, MobileOutlined, DollarOutlined, UnorderedListOutlined } from '@ant-design/icons';
+import { SaveOutlined, CreditCardOutlined, MobileOutlined, DollarOutlined, UnorderedListOutlined, PlusOutlined, ClearOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/router';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -29,12 +31,16 @@ const ClosingEntry = () => {
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false); // Track if form has been submitted
   const [branchId, setBranchId] = useState(null);
   const [date, setDate] = useState(dayjs());
   const [systemSales, setSystemSales] = useState(0);
   const [manualSales, setManualSales] = useState(0);
   const [onlineSales, setOnlineSales] = useState(0);
   const [expenses, setExpenses] = useState(0);
+  const [expenseDetails, setExpenseDetails] = useState([
+    { serialNo: 1, purpose: '', amount: 0 },
+  ]);
   const [creditCardPayment, setCreditCardPayment] = useState(0);
   const [upiPayment, setUpiPayment] = useState(0);
   const [cashPayment, setCashPayment] = useState(0);
@@ -48,11 +54,18 @@ const ClosingEntry = () => {
   const [totalSales, setTotalSales] = useState(0);
   const [totalPayments, setTotalPayments] = useState(0);
   const [discrepancy, setDiscrepancy] = useState(0);
+  const [lastSubmittedDate, setLastSubmittedDate] = useState(null); // Track the date of the last submission
 
   // Fetch branches on page load
   useEffect(() => {
     fetchBranches();
   }, []);
+
+  // Calculate total expenses from expenseDetails and update expenses state
+  useEffect(() => {
+    const totalExpenses = expenseDetails.reduce((sum, detail) => sum + (detail.amount || 0), 0);
+    setExpenses(totalExpenses);
+  }, [expenseDetails]);
 
   // Recalculate totals whenever inputs change
   useEffect(() => {
@@ -89,6 +102,23 @@ const ClosingEntry = () => {
     denom10,
   ]);
 
+  // Auto-clear form at 12 AM (next day)
+  useEffect(() => {
+    const checkMidnight = () => {
+      const now = dayjs();
+      const currentDate = now.format('YYYY-MM-DD');
+      const lastDate = lastSubmittedDate ? dayjs(lastSubmittedDate).format('YYYY-MM-DD') : null;
+
+      // If the current date is different from the last submitted date and it's after 12 AM
+      if (lastDate && currentDate !== lastDate) {
+        handleClearForm();
+      }
+    };
+
+    const interval = setInterval(checkMidnight, 60000); // Check every minute
+    return () => clearInterval(interval); // Cleanup interval on component unmount
+  }, [lastSubmittedDate]);
+
   const fetchBranches = async () => {
     setLoading(true);
     try {
@@ -108,6 +138,22 @@ const ClosingEntry = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAddExpense = () => {
+    setExpenseDetails([...expenseDetails, { serialNo: expenseDetails.length + 1, purpose: '', amount: 0 }]);
+  };
+
+  const handlePurposeChange = (index, value) => {
+    const updatedDetails = [...expenseDetails];
+    updatedDetails[index].purpose = value;
+    setExpenseDetails(updatedDetails);
+  };
+
+  const handleAmountChange = (index, value) => {
+    const updatedDetails = [...expenseDetails];
+    updatedDetails[index].amount = value || 0;
+    setExpenseDetails(updatedDetails);
   };
 
   const handleSubmit = async () => {
@@ -135,6 +181,13 @@ const ClosingEntry = () => {
     if (expenses === null || expenses === undefined) {
       message.error('Please enter expenses');
       return;
+    }
+    // Validate expense details
+    for (const detail of expenseDetails) {
+      if (detail.amount > 0 && !detail.purpose) {
+        message.error('Please enter the purpose for all expense amounts');
+        return;
+      }
     }
     if (
       creditCardPayment === null ||
@@ -179,6 +232,7 @@ const ClosingEntry = () => {
           manualSales,
           onlineSales,
           expenses,
+          expenseDetails,
           creditCardPayment,
           upiPayment,
           cashPayment,
@@ -194,23 +248,8 @@ const ClosingEntry = () => {
       const result = await response.json();
       if (response.ok) {
         message.success('Closing entry submitted successfully');
-        // Reset form
-        setBranchId(null);
-        setDate(dayjs());
-        setSystemSales(0);
-        setManualSales(0);
-        setOnlineSales(0);
-        setExpenses(0);
-        setCreditCardPayment(0);
-        setUpiPayment(0);
-        setCashPayment(0);
-        setDenom2000(0);
-        setDenom500(0);
-        setDenom200(0);
-        setDenom100(0);
-        setDenom50(0);
-        setDenom20(0);
-        setDenom10(0);
+        setIsSubmitted(true); // Mark as submitted to show Update and Clear buttons
+        setLastSubmittedDate(date); // Store the submission date for auto-clear
       } else {
         message.error(result.message || 'Failed to submit closing entry');
       }
@@ -221,6 +260,111 @@ const ClosingEntry = () => {
       setSubmitting(false);
     }
   };
+
+  const handleUpdate = async () => {
+    setSubmitting(true);
+    try {
+      const response = await fetch('https://apib.dinasuvadu.in/api/closing-entries', {
+        method: 'POST', // Assuming the backend supports updating via POST; adjust to PUT if needed
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          branchId,
+          date: date.format('YYYY-MM-DD'),
+          systemSales,
+          manualSales,
+          onlineSales,
+          expenses,
+          expenseDetails,
+          creditCardPayment,
+          upiPayment,
+          cashPayment,
+          denom2000,
+          denom500,
+          denom200,
+          denom100,
+          denom50,
+          denom20,
+          denom10,
+        }),
+      });
+      const result = await response.json();
+      if (response.ok) {
+        message.success('Closing entry updated successfully');
+        setLastSubmittedDate(date); // Update the submission date
+      } else {
+        message.error(result.message || 'Failed to update closing entry');
+      }
+    } catch (err) {
+      message.error('Server error while updating closing entry');
+      console.error('Error:', err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleClearForm = () => {
+    setBranchId(null);
+    setDate(dayjs());
+    setSystemSales(0);
+    setManualSales(0);
+    setOnlineSales(0);
+    setExpenses(0);
+    setExpenseDetails([{ serialNo: 1, purpose: '', amount: 0 }]);
+    setCreditCardPayment(0);
+    setUpiPayment(0);
+    setCashPayment(0);
+    setDenom2000(0);
+    setDenom500(0);
+    setDenom200(0);
+    setDenom100(0);
+    setDenom50(0);
+    setDenom20(0);
+    setDenom10(0);
+    setIsSubmitted(false); // Reset to show Submit button
+    setLastSubmittedDate(null); // Clear the submission date
+    message.success('Form cleared successfully');
+  };
+
+  // Define columns for the expense details table
+  const expenseColumns = [
+    {
+      title: 'Serial No',
+      dataIndex: 'serialNo',
+      key: 'serialNo',
+      width: 80,
+      align: 'center',
+      render: (text) => <Input value={text} disabled style={{ textAlign: 'center' }} />,
+    },
+    {
+      title: 'Expense Spent Purpose',
+      dataIndex: 'purpose',
+      key: 'purpose',
+      render: (text, record, index) => (
+        <Input
+          value={text}
+          onChange={(e) => handlePurposeChange(index, e.target.value)}
+          placeholder="Enter purpose (e.g., Fuel)"
+        />
+      ),
+    },
+    {
+      title: 'Amount',
+      dataIndex: 'amount',
+      key: 'amount',
+      width: 120,
+      align: 'center',
+      render: (text, record, index) => (
+        <InputNumber
+          value={text}
+          onChange={(value) => handleAmountChange(index, value)}
+          min={0}
+          formatter={(value) => `₹${value}`}
+          parser={(value) => value.replace('₹', '')}
+          style={{ width: '100%' }}
+        />
+      ),
+    },
+  ];
 
   return (
     <div
@@ -233,7 +377,8 @@ const ClosingEntry = () => {
         alignItems: 'flex-start',
       }}
     >
-      <div style={{ maxWidth: '1200px', width: '100%' }}>
+      <div style={{ maxWidth: '1400px', width: '100%' }}>
+        {/* Main Title */}
         <Title
           level={2}
           style={{
@@ -246,20 +391,65 @@ const ClosingEntry = () => {
           Closing Entry
         </Title>
 
-        <Space style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-          <Button
-            type="default"
-            icon={<UnorderedListOutlined />}
-            onClick={() => router.push('/dealers/closing-entry/list')}
-            style={{
-              background: 'linear-gradient(to right, #34495e, #1a3042)',
-              borderColor: '#34495e',
-              color: '#fff',
-            }}
-          >
-            View Closing Entries
-          </Button>
-        </Space>
+        {/* Common Header Row */}
+        <div
+          style={{
+            background: '#f9f9f9',
+            borderRadius: '8px',
+            padding: '10px 15px',
+            marginBottom: '20px',
+            border: '1px solid #e8e8e8',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+          }}
+        >
+          <Space size="middle">
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <Text strong>Branch</Text>
+              <Select
+                placeholder="Select Branch"
+                value={branchId}
+                onChange={(value) => setBranchId(value)}
+                allowClear
+                style={{ width: '180px' }}
+                size="large"
+              >
+                {branches.map((branch) => (
+                  <Option key={branch._id} value={branch._id}>
+                    {branch.name}
+                  </Option>
+                ))}
+              </Select>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <Text strong>Date</Text>
+              <DatePicker
+                value={date}
+                onChange={(value) => setDate(value || dayjs())}
+                format="YYYY-MM-DD"
+                style={{ width: '180px' }}
+                size="large"
+              />
+            </div>
+
+            <Button
+              type="default"
+              icon={<UnorderedListOutlined />}
+              onClick={() => router.push('/dealers/closing-entry/list')}
+              style={{
+                background: 'linear-gradient(to right, #34495e, #1a3042)',
+                borderColor: '#34495e',
+                color: '#fff',
+                height: '40px',
+              }}
+            >
+              Bill List
+            </Button>
+          </Space>
+        </div>
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px' }}>
@@ -269,211 +459,341 @@ const ClosingEntry = () => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: '2fr 1fr',
+              gridTemplateColumns: '2fr 1fr 1fr', // Three columns: General Inputs, Cash Denominations, Summary
               gap: '30px',
               alignItems: 'start',
+              '@media (max-width: 1024px)': {
+                gridTemplateColumns: '1fr 1fr', // On medium screens, stack General Inputs and Cash Denominations, keep Summary separate
+                gridTemplateRows: 'auto auto',
+              },
               '@media (max-width: 768px)': {
-                gridTemplateColumns: '1fr',
+                gridTemplateColumns: '1fr', // On small screens, stack all sections vertically
+                gridTemplateRows: 'auto auto auto',
               },
             }}
           >
-            {/* Form Section */}
+            {/* General Inputs Section */}
+            <div>
+              <Card
+                title={<Title level={4} style={{ margin: 0, color: '#34495e' }}>Enter General Details</Title>}
+                style={{
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  background: '#fff',
+                  transition: 'all 0.3s ease',
+                  gridColumn: '1 / 2',
+                  '@media (max-width: 1024px)': {
+                    gridColumn: '1 / 2',
+                  },
+                  '@media (max-width: 768px)': {
+                    gridColumn: '1 / 2',
+                  },
+                }}
+                hoverable
+              >
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '150px 1fr',
+                    gap: '15px',
+                    alignItems: 'center',
+                    marginBottom: '20px',
+                  }}
+                >
+                  <Text strong>System Sales (₹):</Text>
+                  <InputNumber
+                    value={systemSales}
+                    onChange={(value) => setSystemSales(value)}
+                    min={0}
+                    formatter={(value) => `₹${value}`}
+                    parser={(value) => value.replace('₹', '')}
+                    style={{ width: '100%' }}
+                    size="large"
+                  />
+
+                  <Text strong>Manual Sales (₹):</Text>
+                  <InputNumber
+                    value={manualSales}
+                    onChange={(value) => setManualSales(value)}
+                    min={0}
+                    formatter={(value) => `₹${value}`}
+                    parser={(value) => value.replace('₹', '')}
+                    style={{ width: '100%' }}
+                    size="large"
+                  />
+
+                  <Text strong>Online Sales (₹):</Text>
+                  <InputNumber
+                    value={onlineSales}
+                    onChange={(value) => setOnlineSales(value)}
+                    min={0}
+                    formatter={(value) => `₹${value}`}
+                    parser={(value) => value.replace('₹', '')}
+                    style={{ width: '100%' }}
+                    size="large"
+                  />
+
+                  <Text strong>Expenses (₹):</Text>
+                  <InputNumber
+                    value={expenses}
+                    disabled
+                    formatter={(value) => `₹${value}`}
+                    parser={(value) => value.replace('₹', '')}
+                    style={{ width: '100%', color: '#000' }} // Ensure text is black
+                    size="large"
+                  />
+
+                  <Text strong>
+                    Credit Card (₹):
+                    <Tooltip title="Amount paid via credit/debit card">
+                      <CreditCardOutlined style={{ marginLeft: '8px', color: '#1890ff' }} />
+                    </Tooltip>
+                  </Text>
+                  <InputNumber
+                    value={creditCardPayment}
+                    onChange={(value) => setCreditCardPayment(value)}
+                    min={0}
+                    formatter={(value) => `₹${value}`}
+                    parser={(value) => value.replace('₹', '')}
+                    style={{ width: '100%', color: '#000' }} // Ensure text is black
+                    size="large"
+                  />
+
+                  <Text strong>
+                    UPI (₹):
+                    <Tooltip title="Amount paid via UPI (e.g., Google Pay, PhonePe)">
+                      <MobileOutlined style={{ marginLeft: '8px', color: '#1890ff' }} />
+                    </Tooltip>
+                  </Text>
+                  <InputNumber
+                    value={upiPayment}
+                    onChange={(value) => setUpiPayment(value)}
+                    min={0}
+                    formatter={(value) => `₹${value}`}
+                    parser={(value) => value.replace('₹', '')}
+                    style={{ width: '100%', color: '#000' }} // Ensure text is black
+                    size="large"
+                  />
+                </div>
+              </Card>
+
+              {/* Expense Details Card */}
+              <Card
+                title={<Title level={4} style={{ margin: 0, color: '#34495e' }}>Expense Details</Title>}
+                style={{
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  background: '#fff',
+                  transition: 'all 0.3s ease',
+                  marginTop: '20px',
+                  gridColumn: '1 / 2',
+                  '@media (max-width: 1024px)': {
+                    gridColumn: '1 / 2',
+                  },
+                  '@media (max-width: 768px)': {
+                    gridColumn: '1 / 2',
+                  },
+                }}
+                hoverable
+              >
+                <Table
+                  columns={expenseColumns}
+                  dataSource={expenseDetails} // Removed the Total row
+                  pagination={false}
+                  bordered
+                  rowKey={(record, index) => index}
+                  style={{ marginBottom: '10px' }}
+                />
+                <Button
+                  icon={<PlusOutlined />}
+                  onClick={handleAddExpense}
+                  style={{
+                    background: '#e6f7ff',
+                    borderColor: '#91d5ff',
+                    color: '#1890ff',
+                    borderRadius: '4px',
+                    marginTop: '10px',
+                    display: 'block',
+                    marginLeft: 'auto',
+                    marginRight: 'auto',
+                  }}
+                >
+                  Add Expense
+                </Button>
+              </Card>
+
+              {/* Submit/Update and Clear Buttons */}
+              <Space
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  marginTop: '20px',
+                }}
+              >
+                {isSubmitted ? (
+                  <>
+                    <Button
+                      type="primary"
+                      icon={<SaveOutlined />}
+                      onClick={handleUpdate}
+                      loading={submitting}
+                      size="large"
+                      style={{
+                        width: '150px',
+                        background: 'linear-gradient(to right, #34495e, #1a3042)',
+                        borderColor: '#34495e',
+                        borderRadius: '8px',
+                        transition: 'all 0.3s ease',
+                      }}
+                    >
+                      Update
+                    </Button>
+                    <Button
+                      type="default"
+                      icon={<ClearOutlined />}
+                      onClick={handleClearForm}
+                      size="large"
+                      style={{
+                        width: '150px',
+                        borderRadius: '8px',
+                        transition: 'all 0.3s ease',
+                      }}
+                    >
+                      Clear
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    type="primary"
+                    icon={<SaveOutlined />}
+                    onClick={handleSubmit}
+                    loading={submitting}
+                    size="large"
+                    style={{
+                      width: '150px',
+                      background: 'linear-gradient(to right, #34495e, #1a3042)',
+                      borderColor: '#34495e',
+                      borderRadius: '8px',
+                      transition: 'all 0.3s ease',
+                    }}
+                  >
+                    Submit
+                  </Button>
+                )}
+              </Space>
+            </div>
+
+            {/* Cash Denominations Section */}
             <Card
-              title={<Title level={4} style={{ margin: 0, color: '#34495e' }}>Enter Closing Details</Title>}
+              title={<Title level={4} style={{ margin: 0, color: '#34495e' }}>Cash Denominations</Title>}
               style={{
                 borderRadius: '12px',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                 background: '#fff',
                 transition: 'all 0.3s ease',
+                gridColumn: '2 / 3',
+                '@media (max-width: 1024px)': {
+                  gridColumn: '2 / 3',
+                },
+                '@media (max-width: 768px)': {
+                  gridColumn: '1 / 2',
+                },
               }}
               hoverable
             >
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '150px 1fr',
-                  gap: '15px',
-                  alignItems: 'center',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '10px',
                   marginBottom: '20px',
                 }}
               >
-                <Text strong>Branch:</Text>
-                <Select
-                  placeholder="Select Branch"
-                  value={branchId}
-                  onChange={(value) => setBranchId(value)}
-                  allowClear
-                  style={{ width: '100%' }}
-                  size="large"
-                >
-                  {branches.map((branch) => (
-                    <Option key={branch._id} value={branch._id}>
-                      {branch.name}
-                    </Option>
-                  ))}
-                </Select>
-
-                <Text strong>Date:</Text>
-                <DatePicker
-                  value={date}
-                  onChange={(value) => setDate(value || dayjs())}
-                  format="YYYY-MM-DD"
-                  style={{ width: '100%' }}
-                  size="large"
-                />
-
-                <Text strong>System Sales (₹):</Text>
-                <InputNumber
-                  value={systemSales}
-                  onChange={(value) => setSystemSales(value)}
-                  min={0}
-                  formatter={(value) => `₹${value}`}
-                  parser={(value) => value.replace('₹', '')}
-                  style={{ width: '100%' }}
-                  size="large"
-                />
-
-                <Text strong>Manual Sales (₹):</Text>
-                <InputNumber
-                  value={manualSales}
-                  onChange={(value) => setManualSales(value)}
-                  min={0}
-                  formatter={(value) => `₹${value}`}
-                  parser={(value) => value.replace('₹', '')}
-                  style={{ width: '100%' }}
-                  size="large"
-                />
-
-                <Text strong>Online Sales (₹):</Text>
-                <InputNumber
-                  value={onlineSales}
-                  onChange={(value) => setOnlineSales(value)}
-                  min={0}
-                  formatter={(value) => `₹${value}`}
-                  parser={(value) => value.replace('₹', '')}
-                  style={{ width: '100%' }}
-                  size="large"
-                />
-
-                <Text strong>Expenses (₹):</Text>
-                <InputNumber
-                  value={expenses}
-                  onChange={(value) => setExpenses(value)}
-                  min={0}
-                  formatter={(value) => `₹${value}`}
-                  parser={(value) => value.replace('₹', '')}
-                  style={{ width: '100%' }}
-                  size="large"
-                />
-
                 <Text strong>
-                  Credit Card (₹):
-                  <Tooltip title="Amount paid via credit/debit card">
-                    <CreditCardOutlined style={{ marginLeft: '8px', color: '#1890ff' }} />
-                  </Tooltip>
-                </Text>
-                <InputNumber
-                  value={creditCardPayment}
-                  onChange={(value) => setCreditCardPayment(value)}
-                  min={0}
-                  formatter={(value) => `₹${value}`}
-                  parser={(value) => value.replace('₹', '')}
-                  style={{ width: '100%' }}
-                  size="large"
-                />
-
-                <Text strong>
-                  UPI (₹):
-                  <Tooltip title="Amount paid via UPI (e.g., Google Pay, PhonePe)">
-                    <MobileOutlined style={{ marginLeft: '8px', color: '#1890ff' }} />
-                  </Tooltip>
-                </Text>
-                <InputNumber
-                  value={upiPayment}
-                  onChange={(value) => setUpiPayment(value)}
-                  min={0}
-                  formatter={(value) => `₹${value}`}
-                  parser={(value) => value.replace('₹', '')}
-                  style={{ width: '100%' }}
-                  size="large"
-                />
-
-                <Text strong>
-                  Cash Denominations:
-                  <Tooltip title="Enter the count of each denomination">
+                  2000 ×
+                  <Tooltip title="Enter the count of 2000 denomination notes">
                     <DollarOutlined style={{ marginLeft: '8px', color: '#1890ff' }} />
                   </Tooltip>
                 </Text>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <Text>2000 ×</Text>
-                  <InputNumber
-                    value={denom2000}
-                    onChange={(value) => setDenom2000(value)}
-                    min={0}
-                    size="large"
-                  />
-                  <Text>500 ×</Text>
-                  <InputNumber
-                    value={denom500}
-                    onChange={(value) => setDenom500(value)}
-                    min={0}
-                    size="large"
-                  />
-                  <Text>200 ×</Text>
-                  <InputNumber
-                    value={denom200}
-                    onChange={(value) => setDenom200(value)} // Fixed typo: was setDenom2000
-                    min={0}
-                    size="large"
-                  />
-                  <Text>100 ×</Text>
-                  <InputNumber
-                    value={denom100}
-                    onChange={(value) => setDenom100(value)}
-                    min={0}
-                    size="large"
-                  />
-                  <Text>50 ×</Text>
-                  <InputNumber
-                    value={denom50}
-                    onChange={(value) => setDenom50(value)}
-                    min={0}
-                    size="large"
-                  />
-                  <Text>20 ×</Text>
-                  <InputNumber
-                    value={denom20}
-                    onChange={(value) => setDenom20(value)}
-                    min={0}
-                    size="large"
-                  />
-                  <Text>10 ×</Text>
-                  <InputNumber
-                    value={denom10}
-                    onChange={(value) => setDenom10(value)}
-                    min={0}
-                    size="large"
-                  />
-                </div>
+                <InputNumber
+                  value={denom2000}
+                  onChange={(value) => setDenom2000(value)}
+                  min={0}
+                  size="large"
+                />
+                <Text strong>
+                  500 ×
+                  <Tooltip title="Enter the count of 500 denomination notes">
+                    <DollarOutlined style={{ marginLeft: '8px', color: '#1890ff' }} />
+                  </Tooltip>
+                </Text>
+                <InputNumber
+                  value={denom500}
+                  onChange={(value) => setDenom500(value)}
+                  min={0}
+                  size="large"
+                />
+                <Text strong>
+                  200 ×
+                  <Tooltip title="Enter the count of 200 denomination notes">
+                    <DollarOutlined style={{ marginLeft: '8px', color: '#1890ff' }} />
+                  </Tooltip>
+                </Text>
+                <InputNumber
+                  value={denom200}
+                  onChange={(value) => setDenom200(value)}
+                  min={0}
+                  size="large"
+                />
+                <Text strong>
+                  100 ×
+                  <Tooltip title="Enter the count of 100 denomination notes">
+                    <DollarOutlined style={{ marginLeft: '8px', color: '#1890ff' }} />
+                  </Tooltip>
+                </Text>
+                <InputNumber
+                  value={denom100}
+                  onChange={(value) => setDenom100(value)}
+                  min={0}
+                  size="large"
+                />
+                <Text strong>
+                  50 ×
+                  <Tooltip title="Enter the count of 50 denomination notes">
+                    <DollarOutlined style={{ marginLeft: '8px', color: '#1890ff' }} />
+                  </Tooltip>
+                </Text>
+                <InputNumber
+                  value={denom50}
+                  onChange={(value) => setDenom50(value)}
+                  min={0}
+                  size="large"
+                />
+                <Text strong>
+                  20 ×
+                  <Tooltip title="Enter the count of 20 denomination notes">
+                    <DollarOutlined style={{ marginLeft: '8px', color: '#1890ff' }} />
+                  </Tooltip>
+                </Text>
+                <InputNumber
+                  value={denom20}
+                  onChange={(value) => setDenom20(value)}
+                  min={0}
+                  size="large"
+                />
+                <Text strong>
+                  10 ×
+                  <Tooltip title="Enter the count of 10 denomination notes">
+                    <DollarOutlined style={{ marginLeft: '8px', color: '#1890ff' }} />
+                  </Tooltip>
+                </Text>
+                <InputNumber
+                  value={denom10}
+                  onChange={(value) => setDenom10(value)}
+                  min={0}
+                  size="large"
+                />
               </div>
-              <Button
-                type="primary"
-                icon={<SaveOutlined />}
-                onClick={handleSubmit}
-                loading={submitting}
-                size="large"
-                style={{
-                  width: '150px',
-                  background: 'linear-gradient(to right, #34495e, #1a3042)',
-                  borderColor: '#34495e',
-                  borderRadius: '8px',
-                  display: 'block',
-                  margin: '0 auto',
-                  transition: 'all 0.3s ease',
-                }}
-              >
-                Submit
-              </Button>
             </Card>
 
             {/* Summary Section */}
@@ -486,6 +806,13 @@ const ClosingEntry = () => {
                 transition: 'all 0.3s ease',
                 position: 'sticky',
                 top: '40px',
+                gridColumn: '3 / 4',
+                '@media (max-width: 1024px)': {
+                  gridColumn: '1 / 3',
+                },
+                '@media (max-width: 768px)': {
+                  gridColumn: '1 / 2',
+                },
               }}
               hoverable
             >

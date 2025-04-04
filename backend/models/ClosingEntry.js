@@ -31,6 +31,24 @@ const closingEntrySchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    expenseDetails: [
+      {
+        serialNo: {
+          type: Number,
+          required: true,
+        },
+        purpose: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        amount: {
+          type: Number,
+          required: true,
+          min: 0,
+        },
+      },
+    ],
     netResult: {
       type: Number,
       required: true,
